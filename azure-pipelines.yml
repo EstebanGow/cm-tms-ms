@@ -1,0 +1,16 @@
+trigger: none
+
+resources:
+  repositories:
+    - repository: template-apis-ci
+      type: git
+      name: DevopsInfrasture/template-apis-ci
+      ref: refs/heads/dev
+
+extends:
+  template: master_template.yml@template-apis-ci
+  parameters:
+    integracionContinua:
+      tecnologia: 'node'
+    entregaContinua:
+      servicio: 'kubernetes-wms'
