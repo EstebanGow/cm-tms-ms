@@ -23,6 +23,8 @@ const ENV = {
     PREFIX_LOGGER: process.env.PREFIX_LOGGER || 'cm',
     LOGGER_LEVEL: process.env.LOGGER_LEVEL || 'false',
     VERSION: process.env.VERSION || 'v1',
+    REDIS_HOST: process.env.REDIS_HOST || 'localhost',
+    REDIS_PORT: process.env.REDIS_PORT || '6379',
 }
 
 if (!isTestingJestEnv) validateEnvs(ENV)
