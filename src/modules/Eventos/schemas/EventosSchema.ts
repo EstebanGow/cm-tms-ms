@@ -1,13 +1,17 @@
-import { BadRequestSchema, RepositoryErrorSchema } from '../../../common/swagger/errors'
+import { AutenticacionErrorSchema, BadRequestSchema, RepositoryErrorSchema } from '../../../common/swagger/errors'
 
-const TemplateSchema = {
-    guardar: {
-        description: 'Swagger del Template de microservicios en el backend',
-        tags: ['Template'],
+const EventosSchema = {
+    registrar: {
+        description: 'Registrar evento inesperado en ruta',
+        tags: ['Eventos'],
         body: {
             type: 'object',
             properties: {
-                nombre: { type: 'string' },
+                idTipoEvento: { type: 'number' },
+                latitud: { type: 'number' },
+                longitud: { type: 'number' },
+                radioAfectacionKm: { type: 'number' },
+                descripion: { type: 'string' },
             },
         },
         response: {
@@ -21,7 +25,7 @@ const TemplateSchema = {
                         properties: {
                             ok: {
                                 type: 'string',
-                                example: 'Se guardó correctamente la data',
+                                example: 'Se registro el evento de forma exitosa',
                             },
                         },
                     },
@@ -33,9 +37,10 @@ const TemplateSchema = {
                 },
             },
             400: BadRequestSchema,
+            401: AutenticacionErrorSchema,
             500: RepositoryErrorSchema,
         },
     },
 }
 
-export default TemplateSchema
+export default EventosSchema

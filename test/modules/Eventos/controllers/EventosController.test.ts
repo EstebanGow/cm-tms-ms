@@ -39,10 +39,10 @@ describe('EventosController', () => {
     } as Req;
 
     const mockDataValidada: IRegistrarEventoIn = {
-      id_tipo_evento: 1,
+      idTipoEvento: 1,
       latitud: 40.7128,
       longitud: -74.0060,
-      radio_afectacion_km: 10,
+      radioAfectacionKm: 10,
       descripcion: 'Accidente'
     };
 

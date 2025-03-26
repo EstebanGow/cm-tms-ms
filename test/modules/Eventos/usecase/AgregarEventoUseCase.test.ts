@@ -30,10 +30,10 @@ describe('AgregarEventoUseCase', () => {
 
   describe('execute', () => {
     const mockData: IRegistrarEventoIn = {
-      id_tipo_evento: 1,
+      idTipoEvento: 1,
       latitud: 40.7128,
       longitud: -74.0060,
-      radio_afectacion_km: 100,
+      radioAfectacionKm: 100,
       descripcion: 'Evento de prueba'
     };
 
@@ -44,7 +44,7 @@ describe('AgregarEventoUseCase', () => {
       await expect(agregarEventoUseCase.execute(mockData)).resolves.not.toThrow();
 
       expect(validarCoordenadas).toHaveBeenCalledWith(mockData.latitud, mockData.longitud);
-      expect(mockEventosRepository.consultarTipoEvento).toHaveBeenCalledWith(mockData.id_tipo_evento);
+      expect(mockEventosRepository.consultarTipoEvento).toHaveBeenCalledWith(mockData.idTipoEvento);
       expect(mockEventosRepository.registrarEvento).toHaveBeenCalledWith(mockData);
     });
 
@@ -67,7 +67,7 @@ describe('AgregarEventoUseCase', () => {
       await expect(agregarEventoUseCase.execute(mockData)).rejects.toThrow('El tipo de evento no existe');
 
       expect(validarCoordenadas).toHaveBeenCalledWith(mockData.latitud, mockData.longitud);
-      expect(mockEventosRepository.consultarTipoEvento).toHaveBeenCalledWith(mockData.id_tipo_evento);
+      expect(mockEventosRepository.consultarTipoEvento).toHaveBeenCalledWith(mockData.idTipoEvento);
       expect(mockEventosRepository.registrarEvento).not.toHaveBeenCalled();
     });
   });

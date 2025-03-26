@@ -1,7 +1,7 @@
 export interface IRegistrarEventoIn {
-    id_tipo_evento: number
+    idTipoEvento: number
     descripcion: string
     latitud: number
     longitud: number
-    radio_afectacion_km: number
+    radioAfectacionKm: number
 }

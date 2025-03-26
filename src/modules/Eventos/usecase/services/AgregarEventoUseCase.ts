@@ -12,7 +12,7 @@ export default class AgregarEventoUseCase {
         const validacionCoordenadas = validarCoordenadas(data.latitud, data.longitud)
         if (!validacionCoordenadas)
             throw new BadMessageException('Error al guardar evento', 'Las coordenadas suministradas no son correctas')
-        await this.consultarTiposEvento(data.id_tipo_evento)
+        await this.consultarTiposEvento(data.idTipoEvento)
         await this.eventosRepository.registrarEvento(data)
     }
 

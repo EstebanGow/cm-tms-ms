@@ -74,7 +74,7 @@ describe('AutenticacionController', () => {
 
       const result = await autenticacionController.autenticar(mockReq);
 
-      expect(result).toEqual(Result.ok<Status>({ ok: 'Autenticcion exitosa', token: expectedToken }));
+      expect(result).toEqual(Result.ok<Status>({ ok: 'Autenticacion exitosa', token: expectedToken }));
     });
 
     it('debe propagar cualquier error que ocurra durante la autenticación', async () => {

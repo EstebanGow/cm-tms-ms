@@ -4,6 +4,7 @@ import { HTTPMETODO, Ruta } from '@common/modules/Ruta'
 import TYPESDEPENDENCIES from './dependencies/TypesDependencies'
 import createDependencies from './dependencies/Dependencies'
 import AutenticacionController from './controllers/AutenticacionController'
+import AutenticacionSchema from './schemas/AutenticacionSchema'
 
 export default class AutenticacionModule implements IModule {
     private moduloRuta = '/autenticacion'
@@ -21,6 +22,7 @@ export default class AutenticacionModule implements IModule {
                 metodo: HTTPMETODO.POST,
                 url: '/',
                 evento: autenticacionController.autenticar.bind(autenticacionController),
+                schema: AutenticacionSchema.autenticar,
             },
         ]
     }

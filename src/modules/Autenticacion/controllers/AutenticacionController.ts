@@ -19,6 +19,6 @@ export default class AutenticacionController {
     async autenticar(_req: Req): Promise<Response<Status | null>> {
         const data = validateData<IAutenticacionIn>(IAutenticacionSchema, _req.data)
         const token = await this.autenticacionUseCase.execute(data)
-        return Result.ok<Status>({ ok: 'Autenticcion exitosa', token })
+        return Result.ok<Status>({ ok: 'Autenticacion exitosa', token })
     }
 }

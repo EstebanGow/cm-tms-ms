@@ -20,11 +20,11 @@ export default class PostgresEventosRepository implements EventosRepository {
             const sqlQuery = `INSERT INTO eventos_inesperados (id_tipo_evento, descripcion, latitud, longitud, radio_afectacion_km)
              VALUES ($1,$2,$3,$4,$5)`
             await this.db.none(sqlQuery, [
-                data.id_tipo_evento,
+                data.idTipoEvento,
                 data.descripcion,
                 data.latitud,
                 data.longitud,
-                data.radio_afectacion_km,
+                data.radioAfectacionKm,
             ])
         } catch (error) {
             logger.error('Eventos', 'registrarEvento', [`Error guardando evento inesperado: ${error.message}`])

@@ -1,13 +1,14 @@
-import { BadRequestSchema, RepositoryErrorSchema } from '../../../common/swagger/errors'
+import { AutenticacionErrorSchema, BadRequestSchema, RepositoryErrorSchema } from '../../../common/swagger/errors'
 
-const TemplateSchema = {
-    guardar: {
-        description: 'Swagger del Template de microservicios en el backend',
-        tags: ['Template'],
+const AutenticacionSchema = {
+    autenticar: {
+        description: 'Servicio para autenticacion de usuario y obtención de token',
+        tags: ['Autenticacion'],
         body: {
             type: 'object',
             properties: {
-                nombre: { type: 'string' },
+                usuario: { type: 'string' },
+                clave: { type: 'string' },
             },
         },
         response: {
@@ -21,7 +22,11 @@ const TemplateSchema = {
                         properties: {
                             ok: {
                                 type: 'string',
-                                example: 'Se guardó correctamente la data',
+                                example: 'Autenticacion exitosa',
+                            },
+                            token: {
+                                type: 'string',
+                                example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ',
                             },
                         },
                     },
@@ -33,9 +38,10 @@ const TemplateSchema = {
                 },
             },
             400: BadRequestSchema,
+            401: AutenticacionErrorSchema,
             500: RepositoryErrorSchema,
         },
     },
 }
 
-export default TemplateSchema
+export default AutenticacionSchema

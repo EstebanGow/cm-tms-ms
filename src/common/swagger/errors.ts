@@ -25,3 +25,17 @@ export const RepositoryErrorSchema = {
         defaultMessage: { type: 'string', example: 'Error handler log' },
     },
 }
+
+export const AutenticacionErrorSchema = {
+    description: 'Bad Request',
+    type: 'object',
+    properties: {
+        isError: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Error de autenticación' },
+        cause: { type: ['string', 'null'], example: 'Error de autenticación' },
+        stack: { type: ['string', 'null'], example: 'Error o null' },
+        statusCode: { type: 'number', example: 401 },
+        code: { type: 'string', example: '401' },
+        defaultMessage: { type: 'string', example: 'Error handler log' },
+    },
+}
