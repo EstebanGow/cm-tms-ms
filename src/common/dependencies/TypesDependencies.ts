@@ -4,6 +4,7 @@ const TYPESDEPENDENCIES = {
     Axios: Symbol.for('Axios'),
     RedisRepository: Symbol.for('RedisRepository'),
     RedisClient: Symbol.for('RedisClient'),
+    TokenService: Symbol.for('TokenService'),
 }
 
 export default TYPESDEPENDENCIES

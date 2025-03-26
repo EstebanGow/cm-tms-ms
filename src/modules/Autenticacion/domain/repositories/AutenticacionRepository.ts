@@ -1,6 +1,6 @@
-import { ITemplateIn } from '@modules/GestionRutas/usecase/dto/in'
-import TemplateEntity from '../entities/TemplateEntity'
+import { IAutenticacionIn } from '@modules/Autenticacion/usecase/dto/in'
+import UsuarioAutenticacionEntity from '../entities/UsuarioAutenticacionEntity'
 
 export interface AutenticacionRepository {
-    guardar(data: ITemplateIn): Promise<TemplateEntity | null>
+    obtenerUsuario(data: IAutenticacionIn): Promise<UsuarioAutenticacionEntity | null>
 }

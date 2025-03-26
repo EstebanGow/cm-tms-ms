@@ -9,6 +9,7 @@ import swagger from '@fastify/swagger'
 import swaggerConfig from '@common/swagger/swaggerConfig'
 import fastifySwaggerUi from '@fastify/swagger-ui'
 import cors from '@fastify/cors'
+import AuthenticationMiddleware from '@infrastructure/app/middleware/AuthenticationMiddleware'
 import { IServer } from '../IServer'
 import { DefaultErrorModel } from './DefaultError'
 
@@ -33,6 +34,15 @@ export default class FastifyServer implements IServer {
         this.app.register(fastifySwaggerUi, swaggerUiOptions)
         this.printRoutes()
         this.errorHandler()
+        this.registerAuthMiddleware()
+    }
+
+    private registerAuthMiddleware = (): void => {
+        this.app.addHook('onRequest', async (request) => {
+            if (!request.url.includes(`v1/docs`) && !request.url.includes(`v1/autenticacion/`)) {
+                await AuthenticationMiddleware(request)
+            }
+        })
     }
 
     private printRoutes = (): void => {

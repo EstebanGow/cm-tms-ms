@@ -6,9 +6,9 @@ import Result from '@common/http/Result'
 import { validateData } from '@common/util/Schemas'
 import { Status } from '../../shared/infrastructure/Controller'
 import TYPESDEPENDENCIES from '../dependencies/TypesDependencies'
-import { ITemplateIn } from '../usecase/dto/in'
-import IGestionRutasSchema from './schemas/IAutenticacionSchema'
 import AutenticacionUseCase from '../usecase/services/AutenticacionUseCase'
+import IAutenticacionSchema from './schemas/IAutenticacionSchema'
+import { IAutenticacionIn } from '../usecase/dto/in'
 
 @injectable()
 export default class AutenticacionController {
@@ -17,8 +17,8 @@ export default class AutenticacionController {
     )
 
     async autenticar(_req: Req): Promise<Response<Status | null>> {
-        const data = validateData<ITemplateIn>(IGestionRutasSchema, _req.data)
-        await this.autenticacionUseCase.execute(data)
-        return Result.ok<Status>({ ok: 'Autenticcion exitosa' })
+        const data = validateData<IAutenticacionIn>(IAutenticacionSchema, _req.data)
+        const token = await this.autenticacionUseCase.execute(data)
+        return Result.ok<Status>({ ok: 'Autenticcion exitosa', token })
     }
 }

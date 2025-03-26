@@ -3,7 +3,6 @@ import { DEPENDENCY_CONTAINER } from '@common/dependencies/DependencyContainer'
 import { HTTPMETODO, Ruta } from '@common/modules/Ruta'
 import TYPESDEPENDENCIES from './dependencies/TypesDependencies'
 import createDependencies from './dependencies/Dependencies'
-import TemplateSchema from './schemas/TemplateSchema'
 import AutenticacionController from './controllers/AutenticacionController'
 
 export default class AutenticacionModule implements IModule {
@@ -14,15 +13,14 @@ export default class AutenticacionModule implements IModule {
     }
 
     getRutas = (): Ruta[] => {
-        const templateController = DEPENDENCY_CONTAINER.get<AutenticacionController>(
+        const autenticacionController = DEPENDENCY_CONTAINER.get<AutenticacionController>(
             TYPESDEPENDENCIES.AutenticacionController,
         )
         return [
             {
                 metodo: HTTPMETODO.POST,
                 url: '/',
-                evento: templateController.autenticar.bind(templateController),
-                schema: TemplateSchema.guardar,
+                evento: autenticacionController.autenticar.bind(autenticacionController),
             },
         ]
     }

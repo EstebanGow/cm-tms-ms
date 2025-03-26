@@ -4,25 +4,25 @@ import PostgresException from '@common/http/exceptions/PostgresException'
 import { logger } from '@common/logger'
 import { injectable } from 'inversify'
 import { IDatabase, IMain } from 'pg-promise'
-import { ITemplateIn } from '@modules/GestionRutas/usecase/dto/in'
-import TemplateEntity from '@modules/GestionRutas/domain/entities/TemplateEntity'
 import { AutenticacionRepository } from '@modules/Autenticacion/domain/repositories/AutenticacionRepository'
 import TYPESDEPENDENCIESGLOBAL from '@common/dependencies/TypesDependencies'
+import UsuarioAutenticacionEntity from '@modules/Autenticacion/domain/entities/UsuarioAutenticacionEntity'
+import { IAutenticacionIn } from '@modules/Autenticacion/usecase/dto/in'
+import EstadosComunes from '@common/enum/EstadosComunes'
 
 @injectable()
 export default class PostgresAutenticacionRepository implements AutenticacionRepository {
     db = DEPENDENCY_CONTAINER.get<IDatabase<IMain>>(TYPESDEPENDENCIESGLOBAL.dbTms)
 
-    schema = '"public"'
-
-    async guardar(data: ITemplateIn): Promise<TemplateEntity | null> {
+    async obtenerUsuario(data: IAutenticacionIn): Promise<UsuarioAutenticacionEntity | null> {
         try {
-            const sqlQuery = `INSERT INTO ${this.schema}."nombre_tabla" (nombre) VALUES ($1) RETURNING id, nombre`
-            const result = await this.db.one(sqlQuery, data)
-            return new TemplateEntity(result)
+            const sqlQuery = `SELECT usuario, clave, estado FROM usuarios_autenticacion WHERE usuario = $1 AND clave = $2 AND estado = $3`
+            const result = await this.db.oneOrNone(sqlQuery, [data.usuario, data.clave, EstadosComunes.ACTIVO])
+            if (!result) return null
+            return new UsuarioAutenticacionEntity(result)
         } catch (error) {
-            logger.error('TEMPLATE', 'KEY', [`Error guardando nombre: ${error.message}`])
-            throw new PostgresException(500, `Error al guardar data en postgress: ${error.message}`)
+            logger.error('Autenticacion', 'obtenerUsuario', [`Error consultando usuario: ${error.message}`])
+            throw new PostgresException(500, `Error al consultar usuario en postgress: ${error.message}`)
         }
     }
 }

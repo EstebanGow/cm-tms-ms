@@ -25,6 +25,7 @@ const ENV = {
     VERSION: process.env.VERSION || 'v1',
     REDIS_HOST: process.env.REDIS_HOST || 'localhost',
     REDIS_PORT: process.env.REDIS_PORT || '6379',
+    JWT_SECRET: process.env.JWT_SECRET || 'secret',
 }
 
 if (!isTestingJestEnv) validateEnvs(ENV)

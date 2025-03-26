@@ -6,6 +6,8 @@ import { IDatabase, IMain } from 'pg-promise'
 import cm from '@infrastructure/bd/adapter/Config'
 import { RedisRepository } from '@common/repositories'
 import { RedisRuteoRepository } from '@infrastructure/redis'
+import { ITokenService } from '@common/interfaces/ITokenService'
+import TokenService from '@infrastructure/services/TokenService'
 import TYPESDEPENDENCIES from './TypesDependencies'
 
 export const DEPENDENCY_CONTAINER = new Container()
@@ -15,5 +17,10 @@ export const globalDependencies = (): void => {
     DEPENDENCY_CONTAINER.bind<IDatabase<IMain>>(TYPESDEPENDENCIES.dbTms).toConstantValue(cm)
     DEPENDENCY_CONTAINER.bind<RedisRepository>(TYPESDEPENDENCIES.RedisRepository)
         .to(RedisRuteoRepository)
+        .inSingletonScope()
+    DEPENDENCY_CONTAINER.bind<ITokenService>(TYPESDEPENDENCIES.TokenService)
+        .toDynamicValue(() => {
+            return new TokenService()
+        })
         .inSingletonScope()
 }
