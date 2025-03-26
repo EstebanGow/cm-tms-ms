@@ -1,6 +1,7 @@
-import { ITemplateIn } from '@modules/GestionRutas/usecase/dto/in'
-import TemplateEntity from '../entities/TemplateEntity'
+import { IRegistrarEventoIn } from '@modules/Eventos/usecase/dto/in'
+import TipoEventoEntity from '../entities/TipoEventoEntity'
 
 export interface EventosRepository {
-    guardar(data: ITemplateIn): Promise<TemplateEntity | null>
+    registrarEvento(data: IRegistrarEventoIn): Promise<void>
+    consultarTipoEvento(idTIpoEvento: number): Promise<TipoEventoEntity | null>
 }

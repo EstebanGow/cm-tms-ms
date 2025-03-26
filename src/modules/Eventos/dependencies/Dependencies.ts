@@ -3,7 +3,7 @@ import PostgresEventosRepository from '@infrastructure/bd/dao/PostgresEventosRep
 import TYPESDEPENDENCIES from './TypesDependencies'
 import AgregarEventoUseCase from '../usecase/services/AgregarEventoUseCase'
 import { EventosRepository } from '../domain/repositories/EventosRepository'
-import EventosController from '../controllers/GestionRutasController'
+import EventosController from '../controllers/EventosController'
 
 const createDependencies = (): void => {
     DEPENDENCY_CONTAINER.bind<EventosController>(TYPESDEPENDENCIES.EventosController)

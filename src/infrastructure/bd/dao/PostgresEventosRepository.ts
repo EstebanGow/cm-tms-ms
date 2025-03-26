@@ -4,10 +4,10 @@ import PostgresException from '@common/http/exceptions/PostgresException'
 import { logger } from '@common/logger'
 import { injectable } from 'inversify'
 import { IDatabase, IMain } from 'pg-promise'
-import { ITemplateIn } from '@modules/GestionRutas/usecase/dto/in'
-import TemplateEntity from '@modules/GestionRutas/domain/entities/TemplateEntity'
 import { EventosRepository } from '@modules/Eventos/domain/repositories/EventosRepository'
 import TYPESDEPENDENCIESGLOBAL from '@common/dependencies/TypesDependencies'
+import { IRegistrarEventoIn } from '@modules/Eventos/usecase/dto/in'
+import TipoEventoEntity from '@modules/Eventos/domain/entities/TipoEventoEntity'
 
 @injectable()
 export default class PostgresEventosRepository implements EventosRepository {
@@ -15,14 +15,35 @@ export default class PostgresEventosRepository implements EventosRepository {
 
     schema = '"public"'
 
-    async guardar(data: ITemplateIn): Promise<TemplateEntity | null> {
+    async registrarEvento(data: IRegistrarEventoIn): Promise<void> {
         try {
-            const sqlQuery = `INSERT INTO ${this.schema}."nombre_tabla" (nombre) VALUES ($1) RETURNING id, nombre`
-            const result = await this.db.one(sqlQuery, data)
-            return new TemplateEntity(result)
+            const sqlQuery = `INSERT INTO eventos_inesperados (id_tipo_evento, descripcion, latitud, longitud, radio_afectacion_km)
+             VALUES ($1,$2,$3,$4,$5)`
+            await this.db.none(sqlQuery, [
+                data.id_tipo_evento,
+                data.descripcion,
+                data.latitud,
+                data.longitud,
+                data.radio_afectacion_km,
+            ])
         } catch (error) {
-            logger.error('TEMPLATE', 'KEY', [`Error guardando nombre: ${error.message}`])
-            throw new PostgresException(500, `Error al guardar data en postgress: ${error.message}`)
+            logger.error('Eventos', 'registrarEvento', [`Error guardando evento inesperado: ${error.message}`])
+            throw new PostgresException(500, `Error al guardar datos de evento en postgress: ${error.message}`)
+        }
+    }
+
+    async consultarTipoEvento(idTIpoEvento: number): Promise<TipoEventoEntity | null> {
+        try {
+            const sqlQuery = `SELECT  nombre, descripcion, impacto_estimado
+                                FROM tipos_eventos WHERE id_tipo_evento = $1;`
+            const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [idTIpoEvento])
+            if (resultadoConsulta) {
+                return resultadoConsulta
+            }
+            return null
+        } catch (error) {
+            logger.error('Eventos', 'consultarTipoEvento', [`Error al consultar tipo de evento: ${error.message}`])
+            throw new PostgresException(500, `Error al consultar tipo evento en postgress: ${error.message}`)
         }
     }
 }

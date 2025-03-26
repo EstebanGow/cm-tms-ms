@@ -1,7 +1,12 @@
 import CustomJoi from '@common/util/JoiMessage'
+import { IRegistrarEventoIn } from '@modules/Eventos/usecase/dto/in'
 
-const IEventosSchema = CustomJoi.object({
-    nombre: CustomJoi.string().required(),
+const IRegistrarEventoSchema = CustomJoi.object<IRegistrarEventoIn>({
+    id_tipo_evento: CustomJoi.number().required(),
+    descripcion: CustomJoi.string().required(),
+    latitud: CustomJoi.number().required(),
+    longitud: CustomJoi.number().required(),
+    radio_afectacion_km: CustomJoi.number().required(),
 })
 
-export default IEventosSchema
+export default IRegistrarEventoSchema

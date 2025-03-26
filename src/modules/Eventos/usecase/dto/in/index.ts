@@ -1,1 +1,1 @@
-export * from './ITemplateIn'
+export * from './IEventosIn'
