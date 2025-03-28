@@ -15,7 +15,8 @@ export default class ConsultarRutasEquipoUseCase {
 
     private async consultarRutasEquipo(idEquipo: number): Promise<OptimizacionRutaEntity | null> {
         const optimizacionRutas = await this.equiposRepository.obtenerRutasEquipo(idEquipo)
-        if (!optimizacionRutas) throw new BadMessageException('Error consulta rutas', 'El equipo tiene una ruta activa')
+        if (!optimizacionRutas)
+            throw new BadMessageException('Error consulta rutas', 'El equipo no tiene una ruta activa')
         return optimizacionRutas
     }
 }

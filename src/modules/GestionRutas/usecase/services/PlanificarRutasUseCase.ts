@@ -6,6 +6,7 @@ import TYPESDEPENDENCIESGLOBAL from '@common/dependencies/TypesDependencies'
 import EnviosDomainService from '@modules/GestionRutas/domain/services/Envios/EnviosDomainService'
 import EstadoEnvios from '@common/enum/EstadoEnvios'
 import BadMessageException from '@common/http/exceptions/BadMessageException'
+import CondicionesDomainService from '@modules/GestionRutas/domain/services/Condiciones/CondicionesDomainService'
 
 export default class PlanificarRutasUseCase {
     private rutasRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIES.RutasRepository)
@@ -16,6 +17,10 @@ export default class PlanificarRutasUseCase {
 
     private enviosDomainService = DEPENDENCY_CONTAINER.get<EnviosDomainService>(
         TYPESDEPENDENCIESGLOBAL.EnviosDomainService,
+    )
+
+    private condicionesDomainService = DEPENDENCY_CONTAINER.get<CondicionesDomainService>(
+        TYPESDEPENDENCIESGLOBAL.CondicionesDomainService,
     )
 
     async execute(idEquipo: number): Promise<void> {
@@ -31,5 +36,20 @@ export default class PlanificarRutasUseCase {
             equipo.vehiculo,
         )
         console.log(enviosPorCapacidad)
+        const clima = await this.condicionesDomainService.consultarClima(
+            equipo.ubicacion.latitud,
+            equipo.ubicacion.longitud,
+        )
+        const trafico = await this.condicionesDomainService.consultarTrafico(
+            equipo.ubicacion.latitud,
+            equipo.ubicacion.longitud,
+        )
+        const eventosInesperados = await this.condicionesDomainService.consultarEventosInesperados(
+            equipo.ubicacion.latitud,
+            equipo.ubicacion.longitud,
+        )
+        console.log(clima)
+        console.log(trafico)
+        console.log(eventosInesperados)
     }
 }
