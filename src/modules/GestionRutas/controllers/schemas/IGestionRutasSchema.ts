@@ -1,7 +1,7 @@
 import CustomJoi from '@common/util/JoiMessage'
 
-const IGestionRutasSchema = CustomJoi.object({
-    nombre: CustomJoi.string().required(),
+const IEquipoIdSchema = CustomJoi.object({
+    idEquipo: CustomJoi.number().required(),
 })
 
-export default IGestionRutasSchema
+export default IEquipoIdSchema

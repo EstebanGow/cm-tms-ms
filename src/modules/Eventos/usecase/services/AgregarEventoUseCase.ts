@@ -2,7 +2,7 @@ import { DEPENDENCY_CONTAINER } from '@common/dependencies/DependencyContainer'
 import { EventosRepository } from '@modules/Eventos/domain/repositories/EventosRepository'
 import validarCoordenadas from '@common/util/CoordenadasUtil'
 import BadMessageException from '@common/http/exceptions/BadMessageException'
-import TYPESDEPENDENCIES from '@modules/Eventos/dependencies/TypesDependencies'
+import TYPESDEPENDENCIES from '@common/dependencies/TypesDependencies'
 import { IRegistrarEventoIn } from '../dto/in'
 
 export default class AgregarEventoUseCase {

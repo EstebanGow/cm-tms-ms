@@ -6,8 +6,9 @@ import { injectable } from 'inversify'
 import { IDatabase, IMain } from 'pg-promise'
 import { EventosRepository } from '@modules/Eventos/domain/repositories/EventosRepository'
 import TYPESDEPENDENCIESGLOBAL from '@common/dependencies/TypesDependencies'
-import { IRegistrarEventoIn } from '@modules/Eventos/usecase/dto/in'
 import TipoEventoEntity from '@modules/Eventos/domain/entities/TipoEventoEntity'
+import moment from 'moment-timezone'
+import { IRegistrarEventoIn } from '@modules/Eventos/usecase/dto/in'
 
 @injectable()
 export default class PostgresEventosRepository implements EventosRepository {
@@ -17,14 +18,16 @@ export default class PostgresEventosRepository implements EventosRepository {
 
     async registrarEvento(data: IRegistrarEventoIn): Promise<void> {
         try {
-            const sqlQuery = `INSERT INTO eventos_inesperados (id_tipo_evento, descripcion, latitud, longitud, radio_afectacion_km)
-             VALUES ($1,$2,$3,$4,$5)`
+            const fechaHoraActual = moment().tz('America/Bogota').format('Y-MM-DD HH:mm:ss')
+            const sqlQuery = `INSERT INTO eventos_inesperados (id_tipo_evento, descripcion, latitud, longitud, radio_afectacion_km, fecha_inicio)
+             VALUES ($1,$2,$3,$4,$5, $6)`
             await this.db.none(sqlQuery, [
                 data.idTipoEvento,
                 data.descripcion,
                 data.latitud,
                 data.longitud,
                 data.radioAfectacionKm,
+                fechaHoraActual,
             ])
         } catch (error) {
             logger.error('Eventos', 'registrarEvento', [`Error guardando evento inesperado: ${error.message}`])

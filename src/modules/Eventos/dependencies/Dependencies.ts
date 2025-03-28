@@ -1,8 +1,6 @@
 import { DEPENDENCY_CONTAINER } from '@common/dependencies/DependencyContainer'
-import PostgresEventosRepository from '@infrastructure/bd/dao/PostgresEventosRepository'
 import TYPESDEPENDENCIES from './TypesDependencies'
 import AgregarEventoUseCase from '../usecase/services/AgregarEventoUseCase'
-import { EventosRepository } from '../domain/repositories/EventosRepository'
 import EventosController from '../controllers/EventosController'
 
 const createDependencies = (): void => {
@@ -13,9 +11,6 @@ const createDependencies = (): void => {
         .toDynamicValue(() => {
             return new AgregarEventoUseCase()
         })
-        .inSingletonScope()
-    DEPENDENCY_CONTAINER.bind<EventosRepository>(TYPESDEPENDENCIES.EventosRepository)
-        .to(PostgresEventosRepository)
         .inSingletonScope()
 }
 

@@ -8,16 +8,16 @@ import { validateData } from '@common/util/Schemas'
 import { Status } from '../../shared/infrastructure/Controller'
 import TYPESDEPENDENCIES from '../dependencies/TypesDependencies'
 import TemplateUseCase from '../usecase/services/PlanificarRutasUseCase'
-import { ITemplateIn } from '../usecase/dto/in'
-import IGestionRutasSchema from './schemas/IGestionRutasSchema'
+import { IEquipoId } from '../usecase/dto/in'
+import IEquipoIdSchema from './schemas/IGestionRutasSchema'
 
 @injectable()
 export default class GestionRutasController {
-    private templateUseCase = DEPENDENCY_CONTAINER.get<TemplateUseCase>(TYPESDEPENDENCIES.PlanificarRutasUseCase)
+    private planificarRutasUseCase = DEPENDENCY_CONTAINER.get<TemplateUseCase>(TYPESDEPENDENCIES.PlanificarRutasUseCase)
 
-    async guardar(_req: Req): Promise<Response<Status | null>> {
-        const data = validateData<ITemplateIn>(IGestionRutasSchema, _req.data)
-        await this.templateUseCase.execute(data)
+    async planificarRutas(_req: Req): Promise<Response<Status | null>> {
+        const { idEquipo } = validateData<IEquipoId>(IEquipoIdSchema, _req.data)
+        await this.planificarRutasUseCase.execute(idEquipo)
         return Result.ok<Status>({ ok: 'Se ejecuto correctamente el template' })
     }
 }

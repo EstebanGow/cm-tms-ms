@@ -1,14 +1,35 @@
 import { DEPENDENCY_CONTAINER } from '@common/dependencies/DependencyContainer'
-import { logger } from '@common/logger'
 import TYPESDEPENDENCIES from '@modules/GestionRutas/dependencies/TypesDependencies'
 import { RutasRepository } from '@modules/GestionRutas/domain/repositories/RutasRepository'
-import { ITemplateIn } from '../dto/in'
+import EquiposDomainService from '@modules/GestionRutas/domain/services/Equipos/EquiposDomainService'
+import TYPESDEPENDENCIESGLOBAL from '@common/dependencies/TypesDependencies'
+import EnviosDomainService from '@modules/GestionRutas/domain/services/Envios/EnviosDomainService'
+import EstadoEnvios from '@common/enum/EstadoEnvios'
+import BadMessageException from '@common/http/exceptions/BadMessageException'
 
 export default class PlanificarRutasUseCase {
-    private templateRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIES.RutasRepository)
+    private rutasRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIES.RutasRepository)
 
-    async execute(data: ITemplateIn): Promise<string | null> {
-        logger.info('TEMPLATEUSECASE', '182946189264', data)
-        return 'ok'
+    private equiposDomainService = DEPENDENCY_CONTAINER.get<EquiposDomainService>(
+        TYPESDEPENDENCIESGLOBAL.EquiposDomainService,
+    )
+
+    private enviosDomainService = DEPENDENCY_CONTAINER.get<EnviosDomainService>(
+        TYPESDEPENDENCIESGLOBAL.EnviosDomainService,
+    )
+
+    async execute(idEquipo: number): Promise<void> {
+        const equipo = await this.equiposDomainService.consultarEquipo(idEquipo)
+        if (equipo === null)
+            throw new BadMessageException('Error al consultar equipo', 'El equipo solicitado no existe')
+
+        this.equiposDomainService.validarEquipo(equipo)
+        const envios = await this.enviosDomainService.consultarEnvios(EstadoEnvios.Pendiente)
+        const enviosOrdenadosPorPrioridad = this.enviosDomainService.ordenarEnviosPorPrioridad(envios)
+        const enviosPorCapacidad = this.enviosDomainService.seleccionarEnviosPorCapacidad(
+            enviosOrdenadosPorPrioridad,
+            equipo.vehiculo,
+        )
+        console.log(enviosPorCapacidad)
     }
 }

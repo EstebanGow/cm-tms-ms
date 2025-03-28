@@ -5,8 +5,6 @@ import { logger } from '@common/logger'
 import { injectable } from 'inversify'
 import { IDatabase, IMain } from 'pg-promise'
 import { RutasRepository } from '@modules/GestionRutas/domain/repositories/RutasRepository'
-import { ITemplateIn } from '@modules/GestionRutas/usecase/dto/in'
-import TemplateEntity from '@modules/GestionRutas/domain/entities/TemplateEntity'
 import TYPESDEPENDENCIESGLOBAL from '@common/dependencies/TypesDependencies'
 
 @injectable()
@@ -15,11 +13,11 @@ export default class PostgresRutasRepository implements RutasRepository {
 
     schema = '"public"'
 
-    async guardar(data: ITemplateIn): Promise<TemplateEntity | null> {
+    async guardar(data: object): Promise<object | null> {
         try {
             const sqlQuery = `INSERT INTO ${this.schema}."nombre_tabla" (nombre) VALUES ($1) RETURNING id, nombre`
             const result = await this.db.one(sqlQuery, data)
-            return new TemplateEntity(result)
+            return result
         } catch (error) {
             logger.error('TEMPLATE', 'KEY', [`Error guardando nombre: ${error.message}`])
             throw new PostgresException(500, `Error al guardar data en postgress: ${error.message}`)

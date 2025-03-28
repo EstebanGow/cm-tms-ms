@@ -3,24 +3,22 @@ import { DEPENDENCY_CONTAINER } from '@common/dependencies/DependencyContainer'
 import { HTTPMETODO, Ruta } from '@common/modules/Ruta'
 import TYPESDEPENDENCIES from './dependencies/TypesDependencies'
 import createDependencies from './dependencies/Dependencies'
-import GestionRutasController from './controllers/GestionRutasController'
+import EquiposController from './controllers/EquiposController'
 
-export default class GestionRutasModule implements IModule {
-    private moduloRuta = '/rutas'
+export default class EquiposModule implements IModule {
+    private moduloRuta = '/equipos'
 
     constructor() {
         createDependencies()
     }
 
     getRutas = (): Ruta[] => {
-        const gestionRutasController = DEPENDENCY_CONTAINER.get<GestionRutasController>(
-            TYPESDEPENDENCIES.GestionRutasController,
-        )
+        const eventosController = DEPENDENCY_CONTAINER.get<EquiposController>(TYPESDEPENDENCIES.EquiposController)
         return [
             {
                 metodo: HTTPMETODO.GET,
-                url: '/:idEquipo',
-                evento: gestionRutasController.planificarRutas.bind(gestionRutasController),
+                url: '/rutas/:idEquipo',
+                evento: eventosController.consultarRutaEquipo.bind(eventosController),
             },
         ]
     }

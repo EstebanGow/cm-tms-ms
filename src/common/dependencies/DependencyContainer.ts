@@ -8,6 +8,15 @@ import { RedisRepository } from '@common/repositories'
 import { RedisRuteoRepository } from '@infrastructure/redis'
 import { ITokenService } from '@common/interfaces/ITokenService'
 import TokenService from '@infrastructure/services/TokenService'
+import { EventosRepository } from '@modules/Eventos/domain/repositories/EventosRepository'
+import PostgresEventosRepository from '@infrastructure/bd/dao/PostgresEventosRepository'
+import { EquiposRepository } from '@modules/GestionRutas/domain/repositories/EquiposRepository'
+import PostgresEquiposRepository from '@infrastructure/bd/dao/PostgresEquiposRepository'
+import { EnviosRepository } from '@modules/GestionRutas/domain/repositories/EnviosRepository'
+import PostgresEnviosRepository from '@infrastructure/bd/dao/PostgresEnviosRepository'
+import EquiposDomainService from '@modules/GestionRutas/domain/services/Equipos/EquiposDomainService'
+import CondicionesDomainService from '@modules/GestionRutas/domain/services/Condiciones/CondicionesDomainService'
+import EnviosDomainService from '@modules/GestionRutas/domain/services/Envios/EnviosDomainService'
 import TYPESDEPENDENCIES from './TypesDependencies'
 
 export const DEPENDENCY_CONTAINER = new Container()
@@ -21,6 +30,30 @@ export const globalDependencies = (): void => {
     DEPENDENCY_CONTAINER.bind<ITokenService>(TYPESDEPENDENCIES.TokenService)
         .toDynamicValue(() => {
             return new TokenService()
+        })
+        .inSingletonScope()
+    DEPENDENCY_CONTAINER.bind<EventosRepository>(TYPESDEPENDENCIES.EventosRepository)
+        .to(PostgresEventosRepository)
+        .inSingletonScope()
+    DEPENDENCY_CONTAINER.bind<EquiposRepository>(TYPESDEPENDENCIES.EquiposRepository)
+        .to(PostgresEquiposRepository)
+        .inSingletonScope()
+    DEPENDENCY_CONTAINER.bind<EnviosRepository>(TYPESDEPENDENCIES.EnviosRepository)
+        .to(PostgresEnviosRepository)
+        .inSingletonScope()
+    DEPENDENCY_CONTAINER.bind<EquiposDomainService>(TYPESDEPENDENCIES.EquiposDomainService)
+        .toDynamicValue(() => {
+            return new EquiposDomainService()
+        })
+        .inSingletonScope()
+    DEPENDENCY_CONTAINER.bind<CondicionesDomainService>(TYPESDEPENDENCIES.CondicionesDomainService)
+        .toDynamicValue(() => {
+            return new CondicionesDomainService()
+        })
+        .inSingletonScope()
+    DEPENDENCY_CONTAINER.bind<EnviosDomainService>(TYPESDEPENDENCIES.EnviosDomainService)
+        .toDynamicValue(() => {
+            return new EnviosDomainService()
         })
         .inSingletonScope()
 }
