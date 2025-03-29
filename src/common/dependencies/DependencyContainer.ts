@@ -5,7 +5,7 @@ import { Container } from 'inversify'
 import { IDatabase, IMain } from 'pg-promise'
 import cm from '@infrastructure/bd/adapter/Config'
 import { RedisRepository } from '@common/repositories'
-import { RedisRuteoRepository } from '@infrastructure/redis'
+import { redisClient, RedisRuteoRepository } from '@infrastructure/redis'
 import { ITokenService } from '@common/interfaces/ITokenService'
 import TokenService from '@infrastructure/services/TokenService'
 import { EventosRepository } from '@modules/Eventos/domain/repositories/EventosRepository'
@@ -17,13 +17,18 @@ import PostgresEnviosRepository from '@infrastructure/bd/dao/PostgresEnviosRepos
 import EquiposDomainService from '@modules/GestionRutas/domain/services/Equipos/EquiposDomainService'
 import CondicionesDomainService from '@modules/GestionRutas/domain/services/Condiciones/CondicionesDomainService'
 import EnviosDomainService from '@modules/GestionRutas/domain/services/Envios/EnviosDomainService'
+import { AxiosRepository } from '@common/http/repositories/AxiosRepository'
+import ApiServiceAxios from '@common/http/services/apiServiceAxios'
+import GeolocalizacionDomainService from '@modules/Eventos/domain/services/GeolocalizacionDomainService'
 import TYPESDEPENDENCIES from './TypesDependencies'
 
 export const DEPENDENCY_CONTAINER = new Container()
 
 export const globalDependencies = (): void => {
+    DEPENDENCY_CONTAINER.bind<AxiosRepository>(TYPESDEPENDENCIES.Axios).to(ApiServiceAxios).inSingletonScope()
     DEPENDENCY_CONTAINER.bind<IServer>(TYPESSERVER.Fastify).to(FastifyServer).inSingletonScope()
     DEPENDENCY_CONTAINER.bind<IDatabase<IMain>>(TYPESDEPENDENCIES.dbTms).toConstantValue(cm)
+    DEPENDENCY_CONTAINER.bind(TYPESDEPENDENCIES.RedisClient).toConstantValue(redisClient)
     DEPENDENCY_CONTAINER.bind<RedisRepository>(TYPESDEPENDENCIES.RedisRepository)
         .to(RedisRuteoRepository)
         .inSingletonScope()
@@ -46,6 +51,11 @@ export const globalDependencies = (): void => {
             return new EquiposDomainService()
         })
         .inSingletonScope()
+    DEPENDENCY_CONTAINER.bind<GeolocalizacionDomainService>(
+        TYPESDEPENDENCIES.GeolocalizacionDomainService,
+    ).toDynamicValue(() => {
+        return new GeolocalizacionDomainService()
+    })
     DEPENDENCY_CONTAINER.bind<CondicionesDomainService>(TYPESDEPENDENCIES.CondicionesDomainService)
         .toDynamicValue(() => {
             return new CondicionesDomainService()

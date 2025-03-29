@@ -6,11 +6,11 @@ import { AxiosRepository } from '../repositories/AxiosRepository'
 export default class ApiServiceAxios implements AxiosRepository {
     async getDataFromUrl(url: string): Promise<AxiosResponse> {
         const response = await axios.get(url)
-        return response
+        return response.data
     }
 
     async postDataToUrl(url: string, data: unknown): Promise<AxiosResponse> {
         const response = await axios.post(url, data)
-        return response
+        return response.data
     }
 }

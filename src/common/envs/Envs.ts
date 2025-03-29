@@ -26,6 +26,7 @@ const ENV = {
     REDIS_HOST: process.env.REDIS_HOST || 'localhost',
     REDIS_PORT: process.env.REDIS_PORT || '6379',
     JWT_SECRET: process.env.JWT_SECRET || 'secret',
+    URL_SERVICIO_GEOLOCALIZACION: process.env.URL_SERVICIO_GEOLOCALIZACION || '',
 }
 
 if (!isTestingJestEnv) validateEnvs(ENV)

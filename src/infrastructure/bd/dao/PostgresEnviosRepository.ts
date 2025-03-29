@@ -12,7 +12,7 @@ import EnvioEntity from '@modules/GestionRutas/domain/entities/EnvioEntity'
 export default class PostgresEnviosRepository implements EnviosRepository {
     db = DEPENDENCY_CONTAINER.get<IDatabase<IMain>>(TYPESDEPENDENCIESGLOBAL.dbTms)
 
-    async consultarEnvios(estado: string): Promise<EnvioEntity[] | null> {
+    async consultarEnvios(estado: string, ciudad: string): Promise<EnvioEntity[] | null> {
         try {
             const sqlQuery = `SELECT 
                                 e.id_envio,
@@ -55,8 +55,8 @@ export default class PostgresEnviosRepository implements EnviosRepository {
                                 envios e
                             LEFT JOIN acuerdo_servicio a ON e.id_acuerdo_servicio = a.id_acuerdo_servicio
                             LEFT JOIN direcciones d ON e.id_direccion_destino = d.id_direccion
-                            WHERE e.estado = $1;`
-            const results = await this.db.manyOrNone(sqlQuery, estado)
+                            WHERE e.estado = $1 AND d.ciudad = $2;`
+            const results = await this.db.manyOrNone(sqlQuery, [estado, ciudad])
 
             if (!results || results.length === 0) {
                 return []

@@ -4,4 +4,5 @@ export interface IRegistrarEventoIn {
     latitud: number
     longitud: number
     radioAfectacionKm: number
+    ciudad: string
 }

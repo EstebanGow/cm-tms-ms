@@ -6,4 +6,5 @@ export interface IUbicacionGPS {
     velocidad: number
     direccion: string
     timestamp: string
+    ciudad: string
 }

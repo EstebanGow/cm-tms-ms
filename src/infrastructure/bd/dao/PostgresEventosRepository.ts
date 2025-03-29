@@ -22,8 +22,8 @@ export default class PostgresEventosRepository implements EventosRepository {
     async registrarEvento(data: IRegistrarEventoIn): Promise<void> {
         try {
             const fechaHoraActual = moment().tz('America/Bogota').format('Y-MM-DD HH:mm:ss')
-            const sqlQuery = `INSERT INTO eventos_inesperados (id_tipo_evento, descripcion, latitud, longitud, radio_afectacion_km, fecha_inicio)
-             VALUES ($1,$2,$3,$4,$5, $6)`
+            const sqlQuery = `INSERT INTO eventos_inesperados (id_tipo_evento, descripcion, latitud, longitud, radio_afectacion_km, fecha_inicio, ciudad)
+             VALUES ($1,$2,$3,$4,$5, $6, $7)`
             await this.db.none(sqlQuery, [
                 data.idTipoEvento,
                 data.descripcion,
@@ -31,6 +31,7 @@ export default class PostgresEventosRepository implements EventosRepository {
                 data.longitud,
                 data.radioAfectacionKm,
                 fechaHoraActual,
+                data.ciudad,
             ])
         } catch (error) {
             logger.error('Eventos', 'registrarEvento', [`Error guardando evento inesperado: ${error.message}`])
@@ -55,8 +56,8 @@ export default class PostgresEventosRepository implements EventosRepository {
 
     async consultarEventosInesperados(latitud: number, longitud: number): Promise<EventoInesperadoEntity | null> {
         try {
-            const sqlQuery = `SELECT id_evento, id_tipo_evento, descripcion, latitud, longitud, radio_afectacion_km, fecha_inicio, fecha_fin, estado
-                                FROM public.eventos_inesperados
+            const sqlQuery = `SELECT id_evento, id_tipo_evento, descripcion, latitud, longitud, radio_afectacion_km, fecha_inicio, fecha_fin, estado, ciudad
+                                FROM eventos_inesperados
                                 WHERE latitud = $1 AND longitud = $2;`
             const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [latitud, longitud])
             if (resultadoConsulta) {
@@ -72,7 +73,7 @@ export default class PostgresEventosRepository implements EventosRepository {
     async consultarClima(latitud: number, longitud: number): Promise<CondicionClimaEntity | null> {
         try {
             const sqlQuery = `SELECT id_condicion_clima, latitud, longitud, condicion, temperatura_c, humedad_porcentaje, velocidad_viento_kmh, visibilidad_km, "timestamp"
-                                FROM public.condiciones_clima
+                                FROM condiciones_clima
                                 WHERE latitud = $1 AND longitud = $2;`
             const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [latitud, longitud])
             if (resultadoConsulta) {
@@ -87,17 +88,17 @@ export default class PostgresEventosRepository implements EventosRepository {
 
     async consultarTrafico(latitud: number, longitud: number): Promise<CondicionTraficoEntity | null> {
         try {
-            const sqlQuery = `SELECT id_condicion_trafico, latitud_inicio, longitud_inicio, latitud_fin, longitud_fin, nivel_congestion, velocidad_promedio_kmh, tiempo_estimado_minutos, "timestamp"
-                                FROM public.condiciones_trafico
-                                WHERE latitud = $1 AND longitud = $2;`
+            const sqlQuery = `SELECT id_condicion_trafico, latitud_inicio, latitud_fin, longitud_fin, nivel_congestion, velocidad_promedio_kmh, tiempo_estimado_minutos, "timestamp"
+                                FROM condiciones_trafico
+                                WHERE latitud_inicio = $1 AND longitud_fin = $2;`
             const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [latitud, longitud])
             if (resultadoConsulta) {
                 return resultadoConsulta
             }
             return null
         } catch (error) {
-            logger.error('Eventos', 'consultarClima', [`Error al consultar clima: ${error.message}`])
-            throw new PostgresException(500, `Error al consultar clima en postgress: ${error.message}`)
+            logger.error('Eventos', 'consultarTrafico', [`Error al consultar trafico: ${error.message}`])
+            throw new PostgresException(500, `Error al consultar trafico en postgress: ${error.message}`)
         }
     }
 }

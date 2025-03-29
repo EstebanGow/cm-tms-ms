@@ -7,8 +7,8 @@ import { IVehiculo } from '../../models/IVehiculo'
 export default class EnviosDomainService {
     private EnviosRepository = DEPENDENCY_CONTAINER.get<EnviosRepository>(TYPESDEPENDENCIES.EnviosRepository)
 
-    async consultarEnvios(estado: string): Promise<EnvioEntity[] | null> {
-        const envios = await this.EnviosRepository.consultarEnvios(estado)
+    async consultarEnvios(estado: string, ciudad: string): Promise<EnvioEntity[] | null> {
+        const envios = await this.EnviosRepository.consultarEnvios(estado, ciudad)
         return envios
     }
 

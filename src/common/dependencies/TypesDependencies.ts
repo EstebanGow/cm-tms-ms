@@ -11,6 +11,7 @@ const TYPESDEPENDENCIES = {
     EquiposRepository: Symbol.for('PostgresEquiposRepository'),
     CondicionesDomainService: Symbol.for('CondicionesDomainService'),
     EventosRepository: Symbol.for('PostgresEventosRepository'),
+    GeolocalizacionDomainService: Symbol.for('GeolocalizacionDomainService'),
 }
 
 export default TYPESDEPENDENCIES

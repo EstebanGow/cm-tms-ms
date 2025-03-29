@@ -29,7 +29,7 @@ export default class PlanificarRutasUseCase {
             throw new BadMessageException('Error al consultar equipo', 'El equipo solicitado no existe')
 
         this.equiposDomainService.validarEquipo(equipo)
-        const envios = await this.enviosDomainService.consultarEnvios(EstadoEnvios.Pendiente)
+        const envios = await this.enviosDomainService.consultarEnvios(EstadoEnvios.Pendiente, equipo.ubicacion.ciudad)
         const enviosOrdenadosPorPrioridad = this.enviosDomainService.ordenarEnviosPorPrioridad(envios)
         const enviosPorCapacidad = this.enviosDomainService.seleccionarEnviosPorCapacidad(
             enviosOrdenadosPorPrioridad,

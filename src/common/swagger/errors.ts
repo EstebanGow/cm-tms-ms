@@ -35,7 +35,7 @@ export const AutenticacionErrorSchema = {
         cause: { type: ['string', 'null'], example: 'Error de autenticación' },
         stack: { type: ['string', 'null'], example: 'Error o null' },
         statusCode: { type: 'number', example: 401 },
-        code: { type: 'string', example: '401' },
+        code: { type: 'string', example: 'AUTENTICATION_ERROR' },
         defaultMessage: { type: 'string', example: 'Error handler log' },
     },
 }

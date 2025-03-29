@@ -52,7 +52,8 @@ export default class PostgresEquiposRepository implements EquiposRepository {
                                     'longitud', u.longitud,
                                     'velocidad', u.velocidad,
                                     'direccion', u.direccion,
-                                    'timestamp', u.timestamp
+                                    'timestamp', u.timestamp,
+                                    'ciudad', u.ciudad
                                 ) AS ubicacion
                             FROM
                                 equipos e

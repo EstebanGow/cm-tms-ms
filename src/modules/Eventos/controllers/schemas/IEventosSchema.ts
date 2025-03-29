@@ -7,6 +7,7 @@ const IRegistrarEventoSchema = CustomJoi.object<IRegistrarEventoIn>({
     latitud: CustomJoi.number().required(),
     longitud: CustomJoi.number().required(),
     radioAfectacionKm: CustomJoi.number().required(),
+    ciudad: CustomJoi.string().required(),
 })
 
 export default IRegistrarEventoSchema
