@@ -1,7 +1,6 @@
 import CustomJoi from '@common/util/JoiMessage'
-import { IEquipoIn } from '@modules/Equipos/usecase/dto/in'
 
-const IEquipoSchema = CustomJoi.object<IEquipoIn>({
+const IEquipoSchema = CustomJoi.object({
     idEquipo: CustomJoi.number().required(),
 })
 

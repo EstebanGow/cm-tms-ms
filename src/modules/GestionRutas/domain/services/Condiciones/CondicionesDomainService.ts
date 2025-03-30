@@ -8,18 +8,18 @@ import { EventosRepository } from '@modules/Eventos/domain/repositories/EventosR
 export default class CondicionesDomainService {
     private eventosRepository = DEPENDENCY_CONTAINER.get<EventosRepository>(TYPESDEPENDENCIES.EventosRepository)
 
-    async consultarClima(latitud: number, longitud: number): Promise<CondicionClimaEntity | null> {
-        const clima = await this.eventosRepository.consultarClima(latitud, longitud)
+    async consultarClima(ciudad: string): Promise<CondicionClimaEntity | null> {
+        const clima = await this.eventosRepository.consultarClima(ciudad)
         return clima
     }
 
-    async consultarTrafico(latitud: number, longitud: number): Promise<CondicionTraficoEntity | null> {
-        const trafico = await this.eventosRepository.consultarTrafico(latitud, longitud)
+    async consultarTrafico(ciudad: string): Promise<CondicionTraficoEntity | null> {
+        const trafico = await this.eventosRepository.consultarTrafico(ciudad)
         return trafico
     }
 
-    async consultarEventosInesperados(latitud: number, longitud: number): Promise<EventoInesperadoEntity | null> {
-        const eventosInesperados = await this.eventosRepository.consultarEventosInesperados(latitud, longitud)
+    async consultarEventosInesperados(ciudad: string): Promise<EventoInesperadoEntity | null> {
+        const eventosInesperados = await this.eventosRepository.consultarEventosInesperados(ciudad)
         return eventosInesperados
     }
 }

@@ -1,6 +1,6 @@
 import { AutenticacionErrorSchema, BadRequestSchema, RepositoryErrorSchema } from '../../../common/swagger/errors'
 
-const EventosSchema = {
+const EquiposSchema = {
     registrar: {
         description: 'Registrar evento inesperado en ruta',
         tags: ['Eventos'],
@@ -43,4 +43,4 @@ const EventosSchema = {
     },
 }
 
-export default EventosSchema
+export default EquiposSchema

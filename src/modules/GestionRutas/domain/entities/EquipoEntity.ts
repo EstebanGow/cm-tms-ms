@@ -14,7 +14,7 @@ export default class EquipoEntity {
 
     estado: string
 
-    ruta_activa: string
+    ruta_activa: number
 
     conductor: IConductor
 

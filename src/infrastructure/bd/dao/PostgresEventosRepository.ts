@@ -54,12 +54,12 @@ export default class PostgresEventosRepository implements EventosRepository {
         }
     }
 
-    async consultarEventosInesperados(latitud: number, longitud: number): Promise<EventoInesperadoEntity | null> {
+    async consultarEventosInesperados(ciudad: string): Promise<EventoInesperadoEntity | null> {
         try {
             const sqlQuery = `SELECT id_evento, id_tipo_evento, descripcion, latitud, longitud, radio_afectacion_km, fecha_inicio, fecha_fin, estado, ciudad
                                 FROM eventos_inesperados
-                                WHERE latitud = $1 AND longitud = $2;`
-            const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [latitud, longitud])
+                                WHERE ciudad = $1 AND estado = 'Activo'`
+            const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [ciudad])
             if (resultadoConsulta) {
                 return resultadoConsulta
             }
@@ -70,12 +70,12 @@ export default class PostgresEventosRepository implements EventosRepository {
         }
     }
 
-    async consultarClima(latitud: number, longitud: number): Promise<CondicionClimaEntity | null> {
+    async consultarClima(ciudad: string): Promise<CondicionClimaEntity | null> {
         try {
             const sqlQuery = `SELECT id_condicion_clima, latitud, longitud, condicion, temperatura_c, humedad_porcentaje, velocidad_viento_kmh, visibilidad_km, "timestamp"
                                 FROM condiciones_clima
-                                WHERE latitud = $1 AND longitud = $2;`
-            const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [latitud, longitud])
+                                WHERE ciudad = $1`
+            const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [ciudad])
             if (resultadoConsulta) {
                 return resultadoConsulta
             }
@@ -86,12 +86,12 @@ export default class PostgresEventosRepository implements EventosRepository {
         }
     }
 
-    async consultarTrafico(latitud: number, longitud: number): Promise<CondicionTraficoEntity | null> {
+    async consultarTrafico(ciudad: string): Promise<CondicionTraficoEntity | null> {
         try {
             const sqlQuery = `SELECT id_condicion_trafico, latitud_inicio, latitud_fin, longitud_fin, nivel_congestion, velocidad_promedio_kmh, tiempo_estimado_minutos, "timestamp"
                                 FROM condiciones_trafico
-                                WHERE latitud_inicio = $1 AND longitud_fin = $2;`
-            const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [latitud, longitud])
+                                WHERE ciudad = $1`
+            const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [ciudad])
             if (resultadoConsulta) {
                 return resultadoConsulta
             }

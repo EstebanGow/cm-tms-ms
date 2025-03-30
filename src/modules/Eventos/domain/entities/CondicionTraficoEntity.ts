@@ -11,7 +11,9 @@ export default class CondicionTraficoEntity {
 
     longitud_fin: number
 
-    nivel_congestion: number
+    nivel_congestion: string
+
+    nivel_congestion_int: number
 
     velocidad_promedio_kmh: number
 
@@ -26,6 +28,7 @@ export default class CondicionTraficoEntity {
         this.latitud_fin = data.latitud_fin
         this.longitud_fin = data.longitud_fin
         this.nivel_congestion = data.nivel_congestion
+        this.nivel_congestion_int = data.nivel_congestion_int
         this.velocidad_promedio_kmh = data.velocidad_promedio_kmh
         this.tiempo_estimado_minutos = data.tiempo_estimado_minutos
         this.timestamp = data.timestamp

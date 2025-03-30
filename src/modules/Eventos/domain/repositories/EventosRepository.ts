@@ -7,7 +7,7 @@ import CondicionTraficoEntity from '../entities/CondicionTraficoEntity'
 export interface EventosRepository {
     registrarEvento(data: IRegistrarEventoIn): Promise<void>
     consultarTipoEvento(idTIpoEvento: number): Promise<TipoEventoEntity | null>
-    consultarEventosInesperados(latitud: number, longitud: number): Promise<EventoInesperadoEntity | null>
-    consultarClima(latitud: number, longitud: number): Promise<CondicionClimaEntity | null>
-    consultarTrafico(latitud: number, longitud: number): Promise<CondicionTraficoEntity | null>
+    consultarEventosInesperados(ciudad: string): Promise<EventoInesperadoEntity | null>
+    consultarClima(ciudad: string): Promise<CondicionClimaEntity | null>
+    consultarTrafico(ciudad: string): Promise<CondicionTraficoEntity | null>
 }

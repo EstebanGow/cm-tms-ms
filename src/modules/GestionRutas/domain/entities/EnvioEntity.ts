@@ -29,6 +29,12 @@ export default class EnvioEntity {
 
     direccion_destino: IDireccion
 
+    orden_secuencia: number
+
+    tiempo_estimado_minutos: number
+
+    distancia_km: number
+
     constructor(data: IEnvio) {
         this.id_envio = data.id_envio
         this.id_cliente = data.id_cliente
@@ -43,5 +49,8 @@ export default class EnvioEntity {
         this.estado = data.estado
         this.acuerdo_servicio = data.acuerdo_servicio
         this.direccion_destino = data.direccion_destino
+        this.orden_secuencia = 0
+        this.tiempo_estimado_minutos = 0
+        this.distancia_km = 0
     }
 }

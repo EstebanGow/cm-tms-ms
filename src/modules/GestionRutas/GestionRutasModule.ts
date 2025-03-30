@@ -19,8 +19,13 @@ export default class GestionRutasModule implements IModule {
         return [
             {
                 metodo: HTTPMETODO.GET,
-                url: '/:idEquipo',
+                url: '/planificar/:idEquipo',
                 evento: gestionRutasController.planificarRutas.bind(gestionRutasController),
+            },
+            {
+                metodo: HTTPMETODO.GET,
+                url: '/replanificar/:idEquipo',
+                evento: gestionRutasController.replanificarRutas.bind(gestionRutasController),
             },
         ]
     }

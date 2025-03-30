@@ -1,13 +1,90 @@
 import { DEPENDENCY_CONTAINER } from '@common/dependencies/DependencyContainer'
-import { logger } from '@common/logger'
-import TYPESDEPENDENCIES from '@modules/GestionRutas/dependencies/TypesDependencies'
+import BadMessageException from '@common/http/exceptions/BadMessageException'
 import { RutasRepository } from '@modules/GestionRutas/domain/repositories/RutasRepository'
+import EquiposDomainService from '@modules/GestionRutas/domain/services/Equipos/EquiposDomainService'
+import TYPESDEPENDENCIESGLOBAL from '@common/dependencies/TypesDependencies'
+import EnviosDomainService from '@modules/GestionRutas/domain/services/Envios/EnviosDomainService'
+import CondicionesDomainService from '@modules/GestionRutas/domain/services/Condiciones/CondicionesDomainService'
+import EstrategiaFactory from '@modules/GestionRutas/domain/strategies/EstrategiaFactory'
+import OrdenadorRutas from '@modules/GestionRutas/domain/strategies/OrdenadorRutas'
+import EnvioEntity from '@modules/GestionRutas/domain/entities/EnvioEntity'
+import EquipoEntity from '@modules/GestionRutas/domain/entities/EquipoEntity'
+import { ICondiciones } from '@modules/GestionRutas/domain/models/ICondiciones'
 
 export default class ReplanificarRutasUseCase {
-    private templateRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIES.RutasRepository)
+    private rutasRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIESGLOBAL.RutasRepository)
 
-    async execute(data: object): Promise<string | null> {
-        logger.info('TEMPLATEUSECASE', '182946189264', data)
-        return 'ok'
+    private equiposDomainService = DEPENDENCY_CONTAINER.get<EquiposDomainService>(
+        TYPESDEPENDENCIESGLOBAL.EquiposDomainService,
+    )
+
+    private enviosDomainService = DEPENDENCY_CONTAINER.get<EnviosDomainService>(
+        TYPESDEPENDENCIESGLOBAL.EnviosDomainService,
+    )
+
+    private condicionesDomainService = DEPENDENCY_CONTAINER.get<CondicionesDomainService>(
+        TYPESDEPENDENCIESGLOBAL.CondicionesDomainService,
+    )
+
+    private estrategiaFactory = DEPENDENCY_CONTAINER.get<EstrategiaFactory>(TYPESDEPENDENCIESGLOBAL.EstrategiaFactory)
+
+    private ordenadorRutas = DEPENDENCY_CONTAINER.get<OrdenadorRutas>(TYPESDEPENDENCIESGLOBAL.OrdenadorRutas)
+
+    async execute(idEquipo: number): Promise<EnvioEntity[]> {
+        const equipo = await this.obtenerYValidarEquipo(idEquipo)
+        console.log(equipo)
+        const enviosEquipo = await this.consultarEnviosOptimizacion(equipo)
+        const condiciones = await this.obtenerCondicionesActuales(equipo.ubicacion.ciudad)
+        const enviosOrdenados = this.ordenarEnvios(enviosEquipo, condiciones)
+        console.log(enviosOrdenados)
+        this.registrarResultados(enviosOrdenados, idEquipo, equipo.ruta_activa)
+
+        return enviosOrdenados
+    }
+
+    private async obtenerYValidarEquipo(idEquipo: number) {
+        const equipo = await this.equiposDomainService.consultarEquipo(idEquipo)
+
+        if (!equipo) {
+            throw new BadMessageException('Error al consultar equipo', 'El equipo solicitado no existe')
+        }
+
+        this.equiposDomainService.validarEquipoReplanificacion(equipo)
+        return equipo
+    }
+
+    private async consultarEnviosOptimizacion(equipo: EquipoEntity) {
+        const envios = await this.enviosDomainService.consultarEnviosOptimizacion(equipo.ruta_activa)
+
+        if (envios && envios.length === 0) {
+            throw new BadMessageException('Error al replanificar la ruta', 'No hay envíos disponibles')
+        }
+        const enviosOrdenadosPorPrioridad = this.enviosDomainService.ordenarEnviosPorPrioridad(envios)
+
+        return enviosOrdenadosPorPrioridad
+    }
+
+    private async obtenerCondicionesActuales(ciudad: string) {
+        const eventosInesperados = await this.condicionesDomainService.consultarEventosInesperados(ciudad)
+
+        return { clima: null, trafico: null, eventosInesperados }
+    }
+
+    private ordenarEnvios(enviosPorCapacidad: EnvioEntity[], condiciones: ICondiciones) {
+        const { clima, trafico, eventosInesperados } = condiciones
+
+        const estrategiaOptima = this.estrategiaFactory.crearEstrategiaOptima(clima, trafico, eventosInesperados)
+
+        this.ordenadorRutas.setStrategy(estrategiaOptima)
+
+        return this.ordenadorRutas.ordenarEnvios(enviosPorCapacidad, clima, trafico, eventosInesperados)
+    }
+
+    private async registrarResultados(
+        enviosOrdenados: EnvioEntity[],
+        idEquipo: number,
+        idOptimizacionAnterior: number,
+    ) {
+        await this.rutasRepository.guardarRutasReplanificacion(enviosOrdenados, idEquipo, idOptimizacionAnterior)
     }
 }

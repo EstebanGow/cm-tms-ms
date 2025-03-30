@@ -19,6 +19,8 @@ export default class CondicionClimaEntity {
 
     timestamp: string
 
+    severidad: number
+
     constructor(data: ICondicionClima) {
         this.id_condicion_clima = data.id_condicion_clima
         this.latitud = data.latitud
@@ -29,5 +31,6 @@ export default class CondicionClimaEntity {
         this.velocidad_viento_kmh = data.velocidad_viento_kmh
         this.visibilidad_km = data.visibilidad_km
         this.timestamp = data.timestamp
+        this.severidad = data.severidad
     }
 }

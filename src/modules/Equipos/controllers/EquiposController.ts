@@ -4,11 +4,11 @@ import { Response } from '@common/http/Response'
 import { DEPENDENCY_CONTAINER } from '@common/dependencies/DependencyContainer'
 import Result from '@common/http/Result'
 import { validateData } from '@common/util/Schemas'
-import IEquipoIdSchema from '@modules/GestionRutas/controllers/schemas/IGestionRutasSchema'
 import { Status } from '../../shared/infrastructure/Controller'
 import TYPESDEPENDENCIES from '../dependencies/TypesDependencies'
 import { IEquipoIn } from '../usecase/dto/in'
 import ConsultarRutasEquipoUseCase from '../usecase/services/ConsultarRutasEquipoUseCase'
+import IEquipoSchema from './schemas/IEquiposSchema'
 
 @injectable()
 export default class EquiposController {
@@ -17,7 +17,7 @@ export default class EquiposController {
     )
 
     async consultarRutaEquipo(_req: Req): Promise<Response<Status | null>> {
-        const data = validateData<IEquipoIn>(IEquipoIdSchema, _req.data)
+        const data = validateData<IEquipoIn>(IEquipoSchema, _req.data)
         const respuestaServicio = await this.consultarRutaEquipoUseCase.execute(data)
         return Result.ok<Status>({
             ok: 'Se consultaron las rutas del equipo de forma exitosa',

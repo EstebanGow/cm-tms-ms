@@ -5,11 +5,16 @@ import EnvioEntity from '../../entities/EnvioEntity'
 import { IVehiculo } from '../../models/IVehiculo'
 
 export default class EnviosDomainService {
-    private EnviosRepository = DEPENDENCY_CONTAINER.get<EnviosRepository>(TYPESDEPENDENCIES.EnviosRepository)
+    private enviosRepository = DEPENDENCY_CONTAINER.get<EnviosRepository>(TYPESDEPENDENCIES.EnviosRepository)
 
     async consultarEnvios(estado: string, ciudad: string): Promise<EnvioEntity[] | null> {
-        const envios = await this.EnviosRepository.consultarEnvios(estado, ciudad)
+        const envios = await this.enviosRepository.consultarEnvios(estado, ciudad)
         return envios
+    }
+
+    async consultarEnviosOptimizacion(idOprimizacion: number): Promise<EnvioEntity[] | null> {
+        const enviosOptimizacion = await this.enviosRepository.consultarEnviosOptimizacion(idOprimizacion)
+        return enviosOptimizacion
     }
 
     ordenarEnviosPorPrioridad(envios: EnvioEntity[] | null) {
@@ -23,7 +28,7 @@ export default class EnviosDomainService {
 
         const enviosOrdenados = [...envios]
 
-        return enviosOrdenados.sort((a, b) => {
+        const resultado = enviosOrdenados.sort((a, b) => {
             const prioridadA = mapaPrioridades[a.acuerdo_servicio.prioridad]
             const prioridadB = mapaPrioridades[b.acuerdo_servicio.prioridad]
 
@@ -41,6 +46,11 @@ export default class EnviosDomainService {
 
             return 0
         })
+
+        return resultado.map((envio, index) => ({
+            ...envio,
+            orden_secuencia: index + 1,
+        }))
     }
 
     seleccionarEnviosPorCapacidad(envios: EnvioEntity[], vehiculo: IVehiculo) {

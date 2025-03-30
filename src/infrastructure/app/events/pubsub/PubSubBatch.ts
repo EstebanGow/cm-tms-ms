@@ -1,7 +1,8 @@
 import { PubSub } from '@google-cloud/pubsub'
 import { logger } from '@common/logger/Logger'
+import ENV from '@common/envs/Envs'
 
-const pubSubClient = new PubSub()
+const pubSubClient = new PubSub({ projectId: ENV.PROJECT_ID })
 
 export default async function publishBatchedMessages(topicName: string, data: Record<string, unknown>[]) {
     const publishOptions = {

@@ -15,4 +15,7 @@ export interface IEnvio {
     estado: string
     acuerdo_servicio: IAcuerdoServicio
     direccion_destino: IDireccion
+    orden_secuencia: number
+    tiempo_estimado_minutos: number
+    distancia_km: number
 }

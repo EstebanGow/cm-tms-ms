@@ -68,4 +68,64 @@ export default class PostgresEnviosRepository implements EnviosRepository {
             throw new PostgresException(500, `Error al consultar envios en postgress: ${error.message}`)
         }
     }
+
+    async consultarEnviosOptimizacion(idOptimizacion: number): Promise<EnvioEntity[] | null> {
+        try {
+            const sqlQuery = `SELECT
+                                e.id_envio,
+                                e.id_cliente,
+                                e.id_acuerdo_servicio,
+                                e.id_direccion_destino,
+                                e.fecha_creacion,
+                                e.fecha_entrega_programada,
+                                e.fecha_entrega_real,
+                                e.peso_kg,
+                                e.volumen_m3,
+                                e.descripcion,
+                                e.estado,
+                                json_build_object(
+                                    'id_acuerdo_servicio', a.id_acuerdo_servicio,
+                                    'id_cliente', a.id_cliente,
+                                    'nombre', a.nombre,
+                                    'tiempo_entrega_horas', a.tiempo_entrega_horas,
+                                    'prioridad', a.prioridad,
+                                    'penalizacion_porcentaje', a.penalizacion_porcentaje,
+                                    'descripcion', a.descripcion
+                                ) AS acuerdo_servicio,
+                                json_build_object(
+                                    'id_direccion', d.id_direccion,
+                                    'id_cliente', d.id_cliente,
+                                    'nombre_contacto', d.nombre_contacto,
+                                    'telefono_contacto', d.telefono_contacto,
+                                    'calle', d.calle,
+                                    'numero', d.numero,
+                                    'ciudad', d.ciudad,
+                                    'estado', d.estado,
+                                    'codigo_postal', d.codigo_postal,
+                                    'pais', d.pais,
+                                    'latitud', d.latitud,
+                                    'longitud', d.longitud,
+                                    'instrucciones_entrega', d.instrucciones_entrega,
+                                    'tipo', d.tipo
+                                ) AS direccion_destino
+                            FROM
+                                envios e
+                            LEFT JOIN acuerdo_servicio a ON e.id_acuerdo_servicio = a.id_acuerdo_servicio
+                            LEFT JOIN direcciones d ON e.id_direccion_destino = d.id_direccion
+                            JOIN asignacion_envios ae ON e.id_envio = ae.id_envio
+                            WHERE
+                                ae.id_optimizacion = $1
+                                AND e.estado::text NOT IN ('Completado', 'Cancelado')`
+            const results = await this.db.manyOrNone(sqlQuery, [idOptimizacion])
+
+            if (!results || results.length === 0) {
+                return []
+            }
+
+            return results.map((result) => new EnvioEntity(result))
+        } catch (error) {
+            logger.error('Envios', 'obtenerEnvios', [`Error consultando envios de optimizacion: ${error.message}`])
+            throw new PostgresException(500, `Error al consultar envios de optimizacion en postgress: ${error.message}`)
+        }
+    }
 }

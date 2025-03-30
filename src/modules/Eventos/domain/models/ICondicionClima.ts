@@ -8,4 +8,5 @@ export interface ICondicionClima {
     velocidad_viento_kmh: number
     visibilidad_km: number
     timestamp: string
+    severidad: number
 }

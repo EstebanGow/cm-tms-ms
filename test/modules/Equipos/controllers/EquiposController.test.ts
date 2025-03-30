@@ -7,9 +7,11 @@ import { validateData } from '@common/util/Schemas';
 import EquiposController from '@modules/Equipos/controllers/EquiposController';
 import ConsultarRutasEquipoUseCase from '@modules/Equipos/usecase/services/ConsultarRutasEquipoUseCase';
 import { IEquipoIn } from '@modules/Equipos/usecase/dto/in';
+import IEquipoSchema from '@modules/Equipos/controllers/schemas/IEquiposSchema';
 
 jest.mock('@common/dependencies/DependencyContainer');
 jest.mock('@common/util/Schemas');
+jest.mock('@modules/GestionRutas/controllers/schemas/IGestionRutasSchema', () => ({}));
 
 describe('EquiposController', () => {
   let equiposController: EquiposController;
@@ -74,6 +76,15 @@ describe('EquiposController', () => {
             }
         }
     ];
+
+    it('debe usar el esquema correcto para validar los datos', async () => {
+      (validateData as jest.Mock).mockReturnValue(mockValidatedData);
+      mockConsultarRutasEquipoUseCase.execute.mockResolvedValue(mockServiceResponse);
+      
+      await equiposController.consultarRutaEquipo(mockRequest);
+      
+      expect(validateData).toHaveBeenCalledWith(IEquipoSchema, mockRequest.data);
+    });
 
     it('debe validar los datos de la solicitud', async () => {
       (validateData as jest.Mock).mockReturnValue(mockValidatedData);

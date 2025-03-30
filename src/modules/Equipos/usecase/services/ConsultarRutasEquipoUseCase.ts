@@ -4,10 +4,13 @@ import { EquiposRepository } from '@modules/GestionRutas/domain/repositories/Equ
 import OptimizacionRutaEntity from '@modules/Equipos/domain/entities/OptimizacionRutaEntity'
 import BadMessageException from '@common/http/exceptions/BadMessageException'
 import { RedisRepository } from '@common/repositories'
+import { RutasRepository } from '@modules/GestionRutas/domain/repositories/RutasRepository'
 import { IEquipoIn } from '../dto/in'
 
 export default class ConsultarRutasEquipoUseCase {
     private equiposRepository = DEPENDENCY_CONTAINER.get<EquiposRepository>(TYPESDEPENDENCIES.EquiposRepository)
+
+    private rutasRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIES.RutasRepository)
 
     private redisRepository = DEPENDENCY_CONTAINER.get<RedisRepository>(TYPESDEPENDENCIES.RedisRepository)
 
@@ -19,7 +22,7 @@ export default class ConsultarRutasEquipoUseCase {
     private async consultarRutaEquipo(idEquipo: number): Promise<OptimizacionRutaEntity | null> {
         const rutaEquipoCache = (await this.consultarRutaEquipoCache(idEquipo)) as OptimizacionRutaEntity
         if (rutaEquipoCache) return rutaEquipoCache
-        const optimizacionRutas = await this.equiposRepository.obtenerRutasEquipo(idEquipo)
+        const optimizacionRutas = await this.rutasRepository.obtenerRutasEquipo(idEquipo)
         if (!optimizacionRutas)
             throw new BadMessageException('Error consulta rutas', 'El equipo no tiene una ruta activa')
         return optimizacionRutas

@@ -7,17 +7,30 @@ import Result from '@common/http/Result'
 import { validateData } from '@common/util/Schemas'
 import { Status } from '../../shared/infrastructure/Controller'
 import TYPESDEPENDENCIES from '../dependencies/TypesDependencies'
-import TemplateUseCase from '../usecase/services/PlanificarRutasUseCase'
 import { IEquipoId } from '../usecase/dto/in'
 import IEquipoIdSchema from './schemas/IGestionRutasSchema'
+import PlanificarRutasUseCase from '../usecase/services/PlanificarRutasUseCase'
+import ReplanificarRutasUseCase from '../usecase/services/ReplanificarRutasUseCase'
 
 @injectable()
 export default class GestionRutasController {
-    private planificarRutasUseCase = DEPENDENCY_CONTAINER.get<TemplateUseCase>(TYPESDEPENDENCIES.PlanificarRutasUseCase)
+    private planificarRutasUseCase = DEPENDENCY_CONTAINER.get<PlanificarRutasUseCase>(
+        TYPESDEPENDENCIES.PlanificarRutasUseCase,
+    )
 
-    async planificarRutas(_req: Req): Promise<Response<Status | null>> {
-        const { idEquipo } = validateData<IEquipoId>(IEquipoIdSchema, _req.data)
-        await this.planificarRutasUseCase.execute(idEquipo)
-        return Result.ok<Status>({ ok: 'Se ejecuto correctamente el template' })
+    private replanificarRutasUseCase = DEPENDENCY_CONTAINER.get<ReplanificarRutasUseCase>(
+        TYPESDEPENDENCIES.ReplanificarRutasUseCase,
+    )
+
+    async planificarRutas(req: Req): Promise<Response<Status | null>> {
+        const data = validateData<IEquipoId>(IEquipoIdSchema, req.data)
+        await this.planificarRutasUseCase.execute(data.idEquipo)
+        return Result.ok<Status>({ ok: 'Se planificaron correctamente las rutas' })
+    }
+
+    async replanificarRutas(req: Req): Promise<Response<Status | null>> {
+        const data = validateData<IEquipoId>(IEquipoIdSchema, req.data)
+        await this.replanificarRutasUseCase.execute(data.idEquipo)
+        return Result.ok<Status>({ ok: 'Se replanificaron correctamente las rutas' })
     }
 }

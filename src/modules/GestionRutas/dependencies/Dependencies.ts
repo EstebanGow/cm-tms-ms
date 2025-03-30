@@ -1,6 +1,4 @@
 import { DEPENDENCY_CONTAINER } from '@common/dependencies/DependencyContainer'
-import PostgresRutasRepository from '@infrastructure/bd/dao/PostgresRutasRepository'
-import { RutasRepository } from '../domain/repositories/RutasRepository'
 import TYPESDEPENDENCIES from './TypesDependencies'
 import GestionRutasController from '../controllers/GestionRutasController'
 import PlanificarRutasUseCase from '../usecase/services/PlanificarRutasUseCase'
@@ -19,9 +17,6 @@ const createDependencies = (): void => {
         .toDynamicValue(() => {
             return new ReplanificarRutasUseCase()
         })
-        .inSingletonScope()
-    DEPENDENCY_CONTAINER.bind<RutasRepository>(TYPESDEPENDENCIES.RutasRepository)
-        .to(PostgresRutasRepository)
         .inSingletonScope()
 }
 

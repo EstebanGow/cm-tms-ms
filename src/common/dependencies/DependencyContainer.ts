@@ -20,6 +20,17 @@ import EnviosDomainService from '@modules/GestionRutas/domain/services/Envios/En
 import { AxiosRepository } from '@common/http/repositories/AxiosRepository'
 import ApiServiceAxios from '@common/http/services/apiServiceAxios'
 import GeolocalizacionDomainService from '@modules/Eventos/domain/services/GeolocalizacionDomainService'
+import OrdenadorRutas from '@modules/GestionRutas/domain/strategies/OrdenadorRutas'
+import { IOrdenamientoStrategy } from '@modules/GestionRutas/domain/models/IOrdenamientoStrategy'
+import OrdenamientoPorTrafico from '@modules/GestionRutas/domain/strategies/OrdenamientoPorTrafico'
+import OrdenamientoPorClima from '@modules/GestionRutas/domain/strategies/OrdenamientoPorClima'
+import OrdenamientoPorEventos from '@modules/GestionRutas/domain/strategies/OrdenamientoPorEventos'
+import EstrategiaFactory from '@modules/GestionRutas/domain/strategies/EstrategiaFactory'
+import { RutasRepository } from '@modules/GestionRutas/domain/repositories/RutasRepository'
+import PostgresRutasRepository from '@infrastructure/bd/dao/PostgresRutasRepository'
+import { PubSub } from '@google-cloud/pubsub'
+import { PublishPubSub, pubsub } from '@infrastructure/pubsub/pubsub'
+import { IPublisherPubSub } from '@infrastructure/pubsub'
 import TYPESDEPENDENCIES from './TypesDependencies'
 
 export const DEPENDENCY_CONTAINER = new Container()
@@ -29,8 +40,14 @@ export const globalDependencies = (): void => {
     DEPENDENCY_CONTAINER.bind<IServer>(TYPESSERVER.Fastify).to(FastifyServer).inSingletonScope()
     DEPENDENCY_CONTAINER.bind<IDatabase<IMain>>(TYPESDEPENDENCIES.dbTms).toConstantValue(cm)
     DEPENDENCY_CONTAINER.bind(TYPESDEPENDENCIES.RedisClient).toConstantValue(redisClient)
+    DEPENDENCY_CONTAINER.bind<PubSub>(TYPESDEPENDENCIES.PubSub).toConstantValue(pubsub)
+    DEPENDENCY_CONTAINER.bind<IPublisherPubSub>(TYPESDEPENDENCIES.PublisherPubsub).to(PublishPubSub).inSingletonScope()
+
     DEPENDENCY_CONTAINER.bind<RedisRepository>(TYPESDEPENDENCIES.RedisRepository)
         .to(RedisRuteoRepository)
+        .inSingletonScope()
+    DEPENDENCY_CONTAINER.bind<RutasRepository>(TYPESDEPENDENCIES.RutasRepository)
+        .to(PostgresRutasRepository)
         .inSingletonScope()
     DEPENDENCY_CONTAINER.bind<ITokenService>(TYPESDEPENDENCIES.TokenService)
         .toDynamicValue(() => {
@@ -64,6 +81,35 @@ export const globalDependencies = (): void => {
     DEPENDENCY_CONTAINER.bind<EnviosDomainService>(TYPESDEPENDENCIES.EnviosDomainService)
         .toDynamicValue(() => {
             return new EnviosDomainService()
+        })
+        .inSingletonScope()
+    DEPENDENCY_CONTAINER.bind<IOrdenamientoStrategy>(TYPESDEPENDENCIES.OrdenamientoPorTraficoStrategy)
+        .to(OrdenamientoPorTrafico)
+        .inSingletonScope()
+
+    DEPENDENCY_CONTAINER.bind<IOrdenamientoStrategy>(TYPESDEPENDENCIES.OrdenamientoPorClimaStrategy)
+        .to(OrdenamientoPorClima)
+        .inSingletonScope()
+
+    DEPENDENCY_CONTAINER.bind<IOrdenamientoStrategy>(TYPESDEPENDENCIES.OrdenamientoPorEventosStrategy)
+        .to(OrdenamientoPorEventos)
+        .inSingletonScope()
+
+    // Registra el factory de estrategias
+    DEPENDENCY_CONTAINER.bind<EstrategiaFactory>(TYPESDEPENDENCIES.EstrategiaFactory)
+        .to(EstrategiaFactory)
+        .inSingletonScope()
+
+    // Ahora, registra el OrdenadorRutas obteniendo la estrategia por defecto
+    DEPENDENCY_CONTAINER.bind<OrdenadorRutas>(TYPESDEPENDENCIES.OrdenadorRutas)
+        .toDynamicValue((context) => {
+            // Obtener la estrategia de tráfico como default inicial
+            const estrategiaDefault = context.container.get<IOrdenamientoStrategy>(
+                TYPESDEPENDENCIES.OrdenamientoPorTraficoStrategy,
+            )
+
+            // Crear una instancia de OrdenadorRutas con la estrategia por defecto
+            return new OrdenadorRutas(estrategiaDefault)
         })
         .inSingletonScope()
 }

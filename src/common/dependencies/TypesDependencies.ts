@@ -12,6 +12,14 @@ const TYPESDEPENDENCIES = {
     CondicionesDomainService: Symbol.for('CondicionesDomainService'),
     EventosRepository: Symbol.for('PostgresEventosRepository'),
     GeolocalizacionDomainService: Symbol.for('GeolocalizacionDomainService'),
+    OrdenamientoPorTraficoStrategy: Symbol.for('OrdenamientoPorTraficoStrategy'),
+    OrdenamientoPorClimaStrategy: Symbol.for('OrdenamientoPorClimaStrategy'),
+    OrdenamientoPorEventosStrategy: Symbol.for('OrdenamientoPorEventosStrategy'),
+    EstrategiaFactory: Symbol.for('EstrategiaFactory'),
+    OrdenadorRutas: Symbol.for('OrdenadorRutas'),
+    RutasRepository: Symbol.for('PostgresRutasRepository'),
+    PubSub: Symbol.for('PubSub'),
+    PublisherPubsub: Symbol.for('PublisherPubsub'),
 }
 
 export default TYPESDEPENDENCIES

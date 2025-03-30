@@ -7,7 +7,7 @@ export interface IEquipo {
     id_conductor: number
     id_vehiculo: number
     fecha_asignacion: string
-    ruta_activa: string
+    ruta_activa: number
     estado: string
     conductor: IConductor
     vehiculo: IVehiculo
