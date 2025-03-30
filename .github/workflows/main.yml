@@ -1,82 +1,211 @@
-name: Cloud Run Deployment Flow
-concurrency: ${{ github.event.repository.name }}-prod
+name: Main Flow
 on:
-  push:
-    branches:
-      - 'master'
+    push:
+        branches:
+            - 'main'
+
 env:
-  SERVICE_NAME: yohan-cm-tms-ms
-  PROJECT_ID: ${{ secrets.PROJECT_ID_PROD }}
-  REGION: us-central1
-  ENV_FILE: env/main.env
-  ENV: prod
-  HOST: apiv2.coordinadora.com
-  MEMORY: 512Mi
-  CPU: 1
-  ALLOW_UNAUTHENTICATED: true
-  DOMAIN: tms
-  SUB_DOMAIN: example
-
+    SERVICE_NAME: tms-ms
+    PROJECT_ID: ${{ secrets.PROJECT_ID }}
+    REGION: us-central1
+    ENV_FILE: env/main.env
+    ENV: dev
+    HOST: localhost
+    MEMORY: 512Mi
+    CPU: 1
+    ALLOW_UNAUTHENTICATED: true
+    DOMAIN: tms
+    SUB_DOMAIN: example
+    BASE_PATH: cm/tms-ms/v1
 jobs:
-  build_and_deploy:
-    runs-on: ubuntu-latest
-    name: Build and deploy to Cloud Run
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '>=20.9.0'
-          
-      - name: Cache node modules
-        uses: actions/cache@v3
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-          
-      - name: Install and Build
-        uses: ./.github/actions/build
-        
-      - name: Build tests
-        uses: ./.github/actions/quality
+    build_and_deploy:
+        runs-on: ubuntu-latest
+        name: Build and deploy
+        outputs:
+            url: ${{ steps.extract_url.outputs.url }}
+            branch: ${{ steps.extract_branch.outputs.branch }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Extract branch name
+              shell: bash
+              run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
+              id: extract_branch
+            - name: Cache node modules
+              uses: actions/cache@v3
+              with:
+                  path: '**/node_modules'
+                  key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+            - name: Install and Build
+              uses: ./.github/actions/build
+            - name: Build tests
+              uses: ./.github/actions/quality
+            - name: Create ENV File
+              run: |
+                mkdir -p env
+                echo "PROJECT_ID=${{ env.PROJECT_ID }}" >> ${{ env.ENV_FILE }}
+                echo "SERVICE_NAME=${{ env.SERVICE_NAME }}" >> ${{ env.ENV_FILE }}
+                echo "HOST=${{ env.HOST }}" >> ${{ env.ENV_FILE }}
+                echo "DOMAIN=${{ env.DOMAIN }}" >> ${{ env.ENV_FILE }}
+                echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> ${{ env.ENV_FILE }}
+                echo "ENV=dev" >> ${{ env.ENV_FILE }}
+                echo "PG_PORT=${{ secrets.PG_PORT }}" >> ${{ env.ENV_FILE }}
+                echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> ${{ env.ENV_FILE }}
+                echo "POSTGRES_PASS=${{ secrets.POSTGRES_PASS }}" >> ${{ env.ENV_FILE }}
+                echo "POSTGRES_DATABASE=${{ secrets.POSTGRES_DATABASE }}" >> ${{ env.ENV_FILE }}
+                echo "PREFIX_LOGGER=cm" >> ${{ env.ENV_FILE }}
+                echo "LOGGER_LEVEL=debug" >> ${{ env.ENV_FILE }}
+                echo "PORT=8080" >> ${{ env.ENV_FILE }}
+                echo "VERSION=v1" >> ${{ env.ENV_FILE }}
+                echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ${{ env.ENV_FILE }}
+                echo "BASE_PATH=${{ env.BASE_PATH }}" >> ${{ env.ENV_FILE }}
+                echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> ${{ env.ENV_FILE }}
+                echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> ${{ env.ENV_FILE }}
+                echo "URL_SERVICIO_GEOLOCALIZACION=${{ secrets.URL_SERVICIO_GEOLOCALIZACION }}" >> ${{ env.ENV_FILE }}
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{ env.PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
-          
-      - name: Authorize Docker push
-        run: gcloud auth configure-docker
-        
-      - name: Build and push Docker image
-        run: |
-          docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }} .
-          docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
-          
-      - name: Create ENV File
-        run: |
-          echo "PROJECT_ID=${{ env.PROJECT_ID }}" >> ${{ env.ENV_FILE }}
-          echo "SERVICE_NAME=${{ env.SERVICE_NAME }}" >> ${{ env.ENV_FILE }}
-          echo "HOST=${{ env.HOST }}" >> ${{ env.ENV_FILE }}
-          echo "DOMAIN=${{ env.DOMAIN }}" >> ${{ env.ENV_FILE }}
-          cp ${{ env.ENV_FILE }} .env
-          
-      - name: Deploy to Cloud Run
-        id: deploy
-        uses: google-github-actions/deploy-cloudrun@v1
-        with:
-          service: ${{ env.SERVICE_NAME }}
-          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
-          region: ${{ env.REGION }}
-          flags: |
-            --memory=${{ env.MEMORY }}
-            --cpu=${{ env.CPU }}
-            --platform=managed
-            --allow-unauthenticated
-            --set-env-vars=ENV=${{ env.ENV }},DOMAIN=${{ env.DOMAIN }}
-            
-      - name: Show Output
-        run: echo ${{ steps.deploy.outputs.url }}
+                # Añadir variable para evitar autenticación en desarrollo
+                echo "DISABLE_AUTH=true" >> ${{ env.ENV_FILE }}
+                # Añadir variable para permitir CORS desde cualquier origen
+                echo "CORS_ORIGIN=*" >> ${{ env.ENV_FILE }}
+                cp ${{ env.ENV_FILE }} .env
+                
+                # Imprimir las variables no sensibles del archivo .env
+                echo "============ Contenido del archivo .env (variables no sensibles) ============"
+                cat ${{ env.ENV_FILE }} | grep -v "SECRET\|PASS\|USER\|HOST\|DATABASE" || echo "No se pudieron mostrar variables no sensibles"
+                echo "==========================================================================="
+                
+                # Contar el número total de variables definidas
+                TOTAL_VARS=$(cat ${{ env.ENV_FILE }} | grep -v "^#" | wc -l)
+                echo "Total de variables definidas en ${{ env.ENV_FILE }}: $TOTAL_VARS"
+                
+                # Verificar que variables específicas importantes existen
+                echo "Verificando variables importantes:"
+                for VAR in PORT SERVICE_NAME ENV VERSION BASE_PATH; do
+                  if grep -q "^$VAR=" ${{ env.ENV_FILE }}; then
+                    echo "✅ $VAR está definida"
+                    grep "^$VAR=" ${{ env.ENV_FILE }}
+                  else
+                    echo "❌ $VAR NO está definida"
+                  fi
+                done
+            - name: Set up Cloud SDK
+              uses: google-github-actions/setup-gcloud@v1
+              with:
+                  install_components: 'gke-gcloud-auth-plugin'
+                  
+            - name: Write service account key to file
+              run: echo '${{ secrets.GCP_SA_KEY }}' > ${{ github.workspace }}/gcp-key.json
+              
+            - name: Authenticate with Google Cloud
+              run: |
+                gcloud auth activate-service-account --key-file=${{ github.workspace }}/gcp-key.json
+                gcloud config set project ${{ env.PROJECT_ID }}
+                gcloud auth configure-docker
+              env:
+                GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-key.json
+                
+            - name: Verificar permisos
+              run: |
+                echo "Verificando permisos de la cuenta de servicio actual..."
+                CUENTA_SERVICIO=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
+                echo "Cuenta de servicio activa: $CUENTA_SERVICIO"
+              env:
+                GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-key.json
+                CLOUDSDK_CORE_PROJECT: ${{ env.PROJECT_ID }}
+                
+            - name: Build y push de Docker
+              run: |
+                echo "Construyendo imagen Docker localmente..."
+                # Verificando la estructura del proyecto
+                echo "Estructura del directorio:"
+                ls -la
+                
+                echo "Contenido de dist:"
+                ls -la dist/ || echo "dist/ no existe!"
+                
+                # Verificando package.json
+                echo "Scripts en package.json:"
+                grep -A 10 "scripts" package.json
+                
+                # Autenticar Docker con Google Container Registry
+                gcloud auth configure-docker --quiet
+                
+                # Modificar Dockerfile para usar npm start
+                if grep -q 'CMD \["node"' Dockerfile; then
+                  echo "Actualizando CMD en Dockerfile para usar npm start..."
+                  sed -i 's/CMD \["node".*\]/CMD \["npm", "start"\]/' Dockerfile
+                fi
+                
+                # Imprimir Dockerfile para depuración
+                echo "Contenido del Dockerfile:"
+                cat Dockerfile
+                
+                # Construir y enviar la imagen directamente con Docker
+                docker build -t gcr.io/${{ env.PROJECT_ID }}/esteban-${{ env.SERVICE_NAME }}:${{ github.sha }} .
+                docker push gcr.io/${{ env.PROJECT_ID }}/esteban-${{ env.SERVICE_NAME }}:${{ github.sha }}
+                
+                echo "Verificando que la imagen existe..."
+                gcloud container images describe gcr.io/${{ env.PROJECT_ID }}/esteban-${{ env.SERVICE_NAME }}:${{ github.sha }}
+              env:
+                GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-key.json
+                CLOUDSDK_CORE_PROJECT: ${{ env.PROJECT_ID }}
+                
+            - name: Deploy to Cloud Run
+              run: |
+                echo "Preparando variables de entorno desde ${{ env.ENV_FILE }} para Cloud Run..."
+                
+                ENV_VARS=$(grep -v '^#' ${{ env.ENV_FILE }} | grep -v "^PORT=" | tr '\n' ',' | sed 's/,$//')
+                
+                echo "Variables que se pasarán a Cloud Run (formato filtrado):"
+                echo "$ENV_VARS" | tr ',' '\n' | grep -v "SECRET\|PASS\|USER\|HOST\|DATABASE" || echo "No hay variables no sensibles"
+                
+                echo "Desplegando a Cloud Run con variables de entorno..."
+                gcloud run deploy esteban-$SERVICE_NAME \
+                  --image gcr.io/${{ env.PROJECT_ID }}/esteban-${{ env.SERVICE_NAME }}:${{ github.sha }} \
+                  --allow-unauthenticated \
+                  --region $REGION \
+                  --max-instances 2 \
+                  --platform managed \
+                  --timeout 5m \
+                  --cpu 1 \
+                  --memory 512Mi \
+                  --set-env-vars "$ENV_VARS" \
+                  --ingress=all
+                
+                echo "Configurando permisos IAM explícitamente..."
+                gcloud run services add-iam-policy-binding esteban-$SERVICE_NAME \
+                  --region=$REGION \
+                  --member=allUsers \
+                  --role=roles/run.invoker || echo "No se pudieron establecer permisos IAM - el servicio podría requerir autenticación"
+              env:
+                GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-key.json
+                CLOUDSDK_CORE_PROJECT: ${{ env.PROJECT_ID }}
+                
+            - name: Verificar el servicio desplegado
+              run: |
+                echo "Obteniendo URL del servicio..."
+                SERVICE_URL=$(gcloud run services describe esteban-$SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)')
+                echo "URL del servicio: $SERVICE_URL"
+                
+                echo "Verificando respuesta del servicio (ruta raíz)..."
+                curl -v $SERVICE_URL || echo "Error al acceder a la ruta raíz"
+                
+                echo "Verificando respuesta de la ruta autenticación..."
+                curl -v $SERVICE_URL/${{ env.BASE_PATH }}/autenticacion/ || echo "Error al acceder a la ruta de autenticación"
+                
+                echo "Intentando con credenciales simuladas..."
+                curl -v $SERVICE_URL/${{ env.BASE_PATH }}/autenticacion/ \
+                  -H "Content-Type: application/json" \
+                  -d '{"username":"test","password":"test"}' || echo "Error al acceder con credenciales"
+                
+                echo "Verificando logs del servicio para identificar problemas..."
+                gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=esteban-$SERVICE_NAME AND severity>=WARNING" --limit=20
+                
+                echo "Verificando configuración del servicio..."
+                gcloud run services describe esteban-$SERVICE_NAME --platform managed --region $REGION
+                
+                echo "URL del servicio desplegado: $SERVICE_URL"
+              env:
+                GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-key.json
+                CLOUDSDK_CORE_PROJECT: ${{ env.PROJECT_ID }}
+              if: always()  # Ejecutar incluso si pasos anteriores fallan

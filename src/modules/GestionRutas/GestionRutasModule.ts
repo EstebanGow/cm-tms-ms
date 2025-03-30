@@ -27,6 +27,16 @@ export default class GestionRutasModule implements IModule {
                 url: '/replanificar/:idEquipo',
                 evento: gestionRutasController.replanificarRutas.bind(gestionRutasController),
             },
+            {
+                metodo: HTTPMETODO.POST,
+                url: '/planificacion/',
+                evento: gestionRutasController.guardarPlanificacionRutas.bind(gestionRutasController),
+            },
+            {
+                metodo: HTTPMETODO.POST,
+                url: '/replanificacion/',
+                evento: gestionRutasController.guardarReplanificacionRutas.bind(gestionRutasController),
+            },
         ]
     }
 
