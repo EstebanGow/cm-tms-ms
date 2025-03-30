@@ -226,8 +226,7 @@ describe('PlanificarRutasUseCase', () => {
             mockCondiciones.trafico,
             mockCondiciones.eventosInesperados
         )
-        expect(publisher).toHaveBeenCalledWith(mockEnvios, 'esteban-replanificacion-ruta')
-        expect(rutasRepositoryMock.guardarRutas).toHaveBeenCalledWith(mockEnvios, 1)
+        expect(publisher).toHaveBeenCalledWith({ envios: mockEnvios, idEquipo: 1 }, 'esteban-replanificacion-ruta')
         expect(resultado).toEqual(mockEnvios)
     })
     

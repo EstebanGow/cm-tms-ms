@@ -211,12 +211,7 @@ describe('ReplanificarRutasUseCase', () => {
                     null,
                     mockEventosInesperados
                 )
-                expect(publisher).toHaveBeenCalledWith(mockEnvios, 'esteban-replanificacion-ruta')
-                expect(rutasRepositoryMock.guardarRutasReplanificacion).toHaveBeenCalledWith(
-                    mockEnvios, 
-                    1, 
-                    mockEquipo.ruta_activa
-                )
+                expect(publisher).toHaveBeenCalledWith({ envios: mockEnvios, idEquipo: 1, idOptimizacionAnterior: mockEquipo.ruta_activa }, 'esteban-replanificacion-ruta')
                 expect(resultado).toEqual(mockEnvios)
                 done()
             })
@@ -312,11 +307,6 @@ describe('ReplanificarRutasUseCase', () => {
         rutasRepositoryMock.guardarRutasReplanificacion.mockResolvedValue(undefined)
         
         await replanificarRutasUseCase.execute(1)
-        
-        expect(rutasRepositoryMock.guardarRutasReplanificacion).toHaveBeenCalledWith(
-            mockEnvios, 
-            1, 
-            mockEquipo.ruta_activa
-        )
+        expect(publisher).toHaveBeenCalledWith({ envios: mockEnvios, idEquipo: 1, idOptimizacionAnterior: mockEquipo.ruta_activa }, 'esteban-replanificacion-ruta')
     })
 })

@@ -92,7 +92,6 @@ export default class PlanificarRutasUseCase {
     }
 
     private async registrarResultados(enviosOrdenados: EnvioEntity[], idEquipo: number) {
-        await this.rutasRepository.guardarRutas(enviosOrdenados, idEquipo)
-        await publisher(enviosOrdenados, 'esteban-replanificacion-ruta')
+        await publisher({ envios: enviosOrdenados, idEquipo }, 'esteban-replanificacion-ruta')
     }
 }

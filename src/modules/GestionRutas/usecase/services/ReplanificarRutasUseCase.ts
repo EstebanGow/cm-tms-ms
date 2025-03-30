@@ -84,7 +84,6 @@ export default class ReplanificarRutasUseCase {
         idEquipo: number,
         idOptimizacionAnterior: number,
     ) {
-        await this.rutasRepository.guardarRutasReplanificacion(enviosOrdenados, idEquipo, idOptimizacionAnterior)
-        await publisher(enviosOrdenados, 'esteban-replanificacion-ruta')
+        await publisher({ envios: enviosOrdenados, idEquipo, idOptimizacionAnterior }, 'esteban-replanificacion-ruta')
     }
 }
