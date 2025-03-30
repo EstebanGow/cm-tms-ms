@@ -11,7 +11,7 @@ import EnvioEntity from '@modules/GestionRutas/domain/entities/EnvioEntity'
 import OrdenadorRutas from '@modules/GestionRutas/domain/strategies/OrdenadorRutas'
 import EquipoEntity from '@modules/GestionRutas/domain/entities/EquipoEntity'
 import { ICondiciones } from '@modules/GestionRutas/domain/models/ICondiciones'
-import { IPublisherPubSub } from '@infrastructure/pubsub'
+import { publisher } from '@infrastructure/app/events/pubsub/PubSubBatch'
 
 export default class PlanificarRutasUseCase {
     private rutasRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIESGLOBAL.RutasRepository)
@@ -31,8 +31,6 @@ export default class PlanificarRutasUseCase {
     private estrategiaFactory = DEPENDENCY_CONTAINER.get<EstrategiaFactory>(TYPESDEPENDENCIESGLOBAL.EstrategiaFactory)
 
     private ordenadorRutas = DEPENDENCY_CONTAINER.get<OrdenadorRutas>(TYPESDEPENDENCIESGLOBAL.OrdenadorRutas)
-
-    private pubsubPublisher = DEPENDENCY_CONTAINER.get<IPublisherPubSub>(TYPESDEPENDENCIESGLOBAL.PublisherPubsub)
 
     async execute(idEquipo: number): Promise<EnvioEntity[]> {
         const equipo = await this.obtenerYValidarEquipo(idEquipo)
@@ -95,5 +93,6 @@ export default class PlanificarRutasUseCase {
 
     private async registrarResultados(enviosOrdenados: EnvioEntity[], idEquipo: number) {
         await this.rutasRepository.guardarRutas(enviosOrdenados, idEquipo)
+        await publisher(enviosOrdenados, 'esteban-replanificacion-ruta')
     }
 }

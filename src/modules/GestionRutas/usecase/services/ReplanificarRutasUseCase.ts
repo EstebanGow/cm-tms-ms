@@ -10,6 +10,7 @@ import OrdenadorRutas from '@modules/GestionRutas/domain/strategies/OrdenadorRut
 import EnvioEntity from '@modules/GestionRutas/domain/entities/EnvioEntity'
 import EquipoEntity from '@modules/GestionRutas/domain/entities/EquipoEntity'
 import { ICondiciones } from '@modules/GestionRutas/domain/models/ICondiciones'
+import { publisher } from '@infrastructure/app/events/pubsub/PubSubBatch'
 
 export default class ReplanificarRutasUseCase {
     private rutasRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIESGLOBAL.RutasRepository)
@@ -32,11 +33,9 @@ export default class ReplanificarRutasUseCase {
 
     async execute(idEquipo: number): Promise<EnvioEntity[]> {
         const equipo = await this.obtenerYValidarEquipo(idEquipo)
-        console.log(equipo)
         const enviosEquipo = await this.consultarEnviosOptimizacion(equipo)
         const condiciones = await this.obtenerCondicionesActuales(equipo.ubicacion.ciudad)
         const enviosOrdenados = this.ordenarEnvios(enviosEquipo, condiciones)
-        console.log(enviosOrdenados)
         this.registrarResultados(enviosOrdenados, idEquipo, equipo.ruta_activa)
 
         return enviosOrdenados
@@ -86,5 +85,6 @@ export default class ReplanificarRutasUseCase {
         idOptimizacionAnterior: number,
     ) {
         await this.rutasRepository.guardarRutasReplanificacion(enviosOrdenados, idEquipo, idOptimizacionAnterior)
+        await publisher(enviosOrdenados, 'esteban-replanificacion-ruta')
     }
 }

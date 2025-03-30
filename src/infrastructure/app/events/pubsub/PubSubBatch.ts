@@ -1,6 +1,7 @@
 import { PubSub } from '@google-cloud/pubsub'
 import { logger } from '@common/logger/Logger'
 import ENV from '@common/envs/Envs'
+import PubSubException from '@common/exceptions/PubsubException'
 
 const pubSubClient = new PubSub({ projectId: ENV.PROJECT_ID })
 
@@ -23,4 +24,15 @@ export default async function publishBatchedMessages(topicName: string, data: Re
         }
     })
     await Promise.all(promises)
+}
+
+export const publisher = async (publishData: object, topic: string) => {
+    const datosBuffer = Buffer.from(JSON.stringify({ ...publishData }))
+
+    try {
+        const messageId = await pubSubClient.topic(topic).publishMessage({ data: datosBuffer })
+        logger.info('RUTAS', 'publisher', [`Mensaje publicado: ${messageId}`, 'Hola', 'Mundo'])
+    } catch (error) {
+        throw new PubSubException(error.message, `Error al publicar en el topic: ${topic}`)
+    }
 }
