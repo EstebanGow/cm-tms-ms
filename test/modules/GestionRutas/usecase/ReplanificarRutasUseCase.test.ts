@@ -11,8 +11,13 @@ import EnvioEntity from '@modules/GestionRutas/domain/entities/EnvioEntity'
 import OrdenadorRutas from '@modules/GestionRutas/domain/strategies/OrdenadorRutas'
 import EquipoEntity from '@modules/GestionRutas/domain/entities/EquipoEntity'
 import ReplanificarRutasUseCase from '@modules/GestionRutas/usecase/services/ReplanificarRutasUseCase'
+import { publisher } from '@infrastructure/app/events/pubsub/PubSubBatch'
 
 jest.mock('@common/dependencies/DependencyContainer')
+
+jest.mock('@infrastructure/app/events/pubsub/PubSubBatch', () => ({
+    publisher: jest.fn().mockResolvedValue(undefined)
+}))
 
 describe('ReplanificarRutasUseCase', () => {
     let replanificarRutasUseCase: ReplanificarRutasUseCase
@@ -206,7 +211,7 @@ describe('ReplanificarRutasUseCase', () => {
                     null,
                     mockEventosInesperados
                 )
-                
+                expect(publisher).toHaveBeenCalledWith(mockEnvios, 'esteban-replanificacion-ruta')
                 expect(rutasRepositoryMock.guardarRutasReplanificacion).toHaveBeenCalledWith(
                     mockEnvios, 
                     1, 
