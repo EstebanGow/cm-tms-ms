@@ -39,7 +39,12 @@ export default class FastifyServer implements IServer {
 
     private registerAuthMiddleware = (): void => {
         this.app.addHook('onRequest', async (request) => {
-            if (!request.url.includes(`v1/docs`) && !request.url.includes(`v1/autenticacion/`)) {
+            if (
+                !request.url.includes(`v1/docs`) &&
+                !request.url.includes(`v1/autenticacion/`) &&
+                !request.url.includes(`rutas/planificacion`) &&
+                !request.url.includes(`rutas/replanificacion`)
+            ) {
                 await AuthenticationMiddleware(request)
             }
         })
