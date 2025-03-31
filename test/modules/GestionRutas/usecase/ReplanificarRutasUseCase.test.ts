@@ -12,6 +12,7 @@ import OrdenadorRutas from '@modules/GestionRutas/domain/strategies/OrdenadorRut
 import EquipoEntity from '@modules/GestionRutas/domain/entities/EquipoEntity'
 import ReplanificarRutasUseCase from '@modules/GestionRutas/usecase/services/ReplanificarRutasUseCase'
 import { publisher } from '@infrastructure/app/events/pubsub/PubSubBatch'
+import OptimizacionRutaEntity from '@modules/Equipos/domain/entities/OptimizacionRutaEntity'
 
 jest.mock('@common/dependencies/DependencyContainer')
 
@@ -124,6 +125,18 @@ describe('ReplanificarRutasUseCase', () => {
         descripcion: 'Manifestación en el centro'
       }
     ]
+
+    const mockRutaActiva = {
+        id_optimizacion: 12,
+        id_equipo: 1,
+        fecha_optimizacion: '2025-03-28',
+        timestamp_optimizacion: '2025-03-28T15:30:00.000Z',
+        estado: 'Activo',
+        tiempo_total_estimado_minutos: 120,
+        distancia_total_km: 35,
+        consumo_combustible_estimado_litros: 4.5,
+        nuevo_evento: true
+    } as OptimizacionRutaEntity
     
     beforeEach(() => {
         jest.spyOn(console, 'log').mockImplementation(() => {})
@@ -133,7 +146,8 @@ describe('ReplanificarRutasUseCase', () => {
         }
         
         rutasRepositoryMock = {
-            guardarRutasReplanificacion: jest.fn().mockResolvedValue(undefined)
+            guardarRutasReplanificacion: jest.fn().mockResolvedValue(undefined),
+            consultarRutaActivaEquipo: jest.fn().mockResolvedValue(mockRutaActiva)
         } as unknown as jest.Mocked<RutasRepository>
         
         equiposDomainServiceMock = {
@@ -193,6 +207,7 @@ describe('ReplanificarRutasUseCase', () => {
             .then(resultado => {
                 expect(equiposDomainServiceMock.consultarEquipo).toHaveBeenCalledWith(1)
                 expect(equiposDomainServiceMock.validarEquipoReplanificacion).toHaveBeenCalledWith(mockEquipo)
+                expect(rutasRepositoryMock.consultarRutaActivaEquipo).toHaveBeenCalledWith(1, 'Medellín')
                 expect(enviosDomainServiceMock.consultarEnviosOptimizacion).toHaveBeenCalledWith(mockEquipo.ruta_activa)
                 expect(enviosDomainServiceMock.ordenarEnviosPorPrioridad).toHaveBeenCalledWith(mockEnvios)
                 
@@ -309,4 +324,83 @@ describe('ReplanificarRutasUseCase', () => {
         await replanificarRutasUseCase.execute(1)
         expect(publisher).toHaveBeenCalledWith({ envios: mockEnvios, idEquipo: 1, idOptimizacionAnterior: mockEquipo.ruta_activa }, 'esteban-replanificacion-ruta')
     })
+
+    // Nuevos tests para cubrir los métodos faltantes
+    
+    it('debe lanzar error cuando no hay ruta activa para el equipo', (done) => {
+        rutasRepositoryMock.consultarRutaActivaEquipo.mockResolvedValue(null)
+        
+        replanificarRutasUseCase.execute(1)
+            .then(() => {
+                done.fail('Debería haber lanzado una excepción')
+            })
+            .catch(error => {
+                expect(error).toBeInstanceOf(BadMessageException)
+                expect(error.message).toContain('No hay ruta activa para el equipo')
+                
+                expect(equiposDomainServiceMock.consultarEquipo).toHaveBeenCalledWith(1)
+                expect(rutasRepositoryMock.consultarRutaActivaEquipo).toHaveBeenCalledWith(1, 'Medellín')
+                expect(enviosDomainServiceMock.consultarEnviosOptimizacion).not.toHaveBeenCalled()
+                done()
+            })
+    })
+    
+    it('debe lanzar error cuando no hay eventos nuevos', (done) => {
+        const rutaActivaSinEventoNuevo = {
+            ...mockRutaActiva,
+            nuevo_evento: false
+        }
+        
+        rutasRepositoryMock.consultarRutaActivaEquipo.mockResolvedValue(rutaActivaSinEventoNuevo)
+        
+        replanificarRutasUseCase.execute(1)
+            .then(() => {
+                done.fail('Debería haber lanzado una excepción')
+            })
+            .catch(error => {
+                expect(error).toBeInstanceOf(BadMessageException)
+                expect(error.message).toContain('No hay eventos nuevos')
+                
+                expect(equiposDomainServiceMock.consultarEquipo).toHaveBeenCalledWith(1)
+                expect(rutasRepositoryMock.consultarRutaActivaEquipo).toHaveBeenCalledWith(1, 'Medellín')
+                expect(enviosDomainServiceMock.consultarEnviosOptimizacion).not.toHaveBeenCalled()
+                done()
+            })
+    })
+    
+    it('debe llamar a consultarRutaActivaEquipo con los parámetros correctos', async () => {
+        await replanificarRutasUseCase.execute(1)
+        expect(rutasRepositoryMock.consultarRutaActivaEquipo).toHaveBeenCalledWith(1, 'Medellín')
+    })
+    
+    it('debe obtener condiciones actuales correctamente', async () => {
+        await replanificarRutasUseCase.execute(1)
+        expect(condicionesDomainServiceMock.consultarEventosInesperados).toHaveBeenCalledWith('Medellín')
+    })
+    
+    it('debe manejar errores en ordenarEnvios', (done) => {
+        const mockError = new Error('Error al ordenar envíos')
+        
+        ordenadorRutasMock.ordenarEnvios.mockImplementation(() => {
+            throw mockError
+        })
+        
+        replanificarRutasUseCase.execute(1)
+            .then(() => {
+                done.fail('Debería haber lanzado una excepción')
+            })
+            .catch(error => {
+                expect(error).toBe(mockError)
+                
+                expect(equiposDomainServiceMock.consultarEquipo).toHaveBeenCalledWith(1)
+                expect(rutasRepositoryMock.consultarRutaActivaEquipo).toHaveBeenCalledWith(1, 'Medellín')
+                expect(enviosDomainServiceMock.consultarEnviosOptimizacion).toHaveBeenCalledWith(mockEquipo.ruta_activa)
+                expect(estrategiaFactoryMock.crearEstrategiaOptima).toHaveBeenCalled()
+                expect(ordenadorRutasMock.setStrategy).toHaveBeenCalledWith(estrategiaMock)
+                expect(ordenadorRutasMock.ordenarEnvios).toHaveBeenCalled()
+                expect(publisher).not.toHaveBeenCalled()
+                done()
+            })
+    })
+    
 })
