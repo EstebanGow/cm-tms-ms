@@ -197,26 +197,35 @@ export default class PostgresRutasRepository implements RutasRepository {
 
     async consultarRutaActivaEquipo(idEquipo: number, ciudad: string): Promise<OptimizacionRutaEntity | null> {
         try {
-            const sqlQuery = `SELECT 
-                                opt.id_optimizacion, 
-                                opt.id_equipo, 
-                                opt.fecha_optimizacion, 
-                                opt.timestamp_optimizacion, 
-                                opt.estado, 
-                                opt.tiempo_total_estimado_minutos, 
-                                opt.distancia_total_km, 
-                                opt.consumo_combustible_estimado_litros,
+            const sqlQuery = `SELECT
+                            opt.id_optimizacion,
+                            opt.id_equipo,
+                            opt.fecha_optimizacion,
+                            opt.timestamp_optimizacion,
+                            opt.estado,
+                            opt.tiempo_total_estimado_minutos,
+                            opt.distancia_total_km,
+                            opt.consumo_combustible_estimado_litros,
+                            (
                                 EXISTS (
                                     SELECT 1
                                     FROM eventos_inesperados ei
-                                    WHERE ei.fecha_inicio > opt.timestamp_optimizacion and ei.estado = $3
-                                    and ei.ciudad = $4
-                                ) AS nuevo_evento
-                            FROM 
-                                optimizacion_rutas opt
-                            WHERE 
-                                opt.id_equipo = $1 
-                                AND opt.estado = $2`
+                                    WHERE ei.fecha_inicio > opt.timestamp_optimizacion 
+                                    AND ei.estado = $3
+                                    AND ei.ciudad = $4
+                                    AND NOT EXISTS (
+                                        SELECT 1
+                                        FROM replanificacion_rutas rr
+                                        WHERE rr.id_evento = ei.id_evento
+                                        AND rr.id_optimizacion_nueva = opt.id_optimizacion
+                                    )
+                                )
+                            ) AS nuevo_evento
+                        FROM
+                            optimizacion_rutas opt
+                        WHERE
+                            opt.id_equipo = $1
+                            AND opt.estado = $2`
             return await this.db.oneOrNone(sqlQuery, [idEquipo, EstadosComunes.VIGENTE, EstadosComunes.ACTIVO, ciudad])
         } catch (error) {
             logger.error('Rutas', 'consultarRutaActivaEquipo', [`Error consultando ruta activa: ${error.message}`])

@@ -42,6 +42,13 @@ export default class EquiposDomainService {
     }
 
     async guardarRutaEquipoCache(ruta: OptimizacionRutaEntity | null) {
-        if (ruta) await this.redisRepository.guardar(ruta, `ruta-${ruta.id_equipo}`)
+        if (ruta) {
+            await this.limpiarRutaANteriosCache(ruta.id_equipo)
+            await this.redisRepository.guardar(ruta, `ruta-${ruta.id_equipo}`)
+        }
+    }
+
+    async limpiarRutaANteriosCache(idEquipo: number) {
+        await this.redisRepository.eliminar(`ruta-${idEquipo}`)
     }
 }
