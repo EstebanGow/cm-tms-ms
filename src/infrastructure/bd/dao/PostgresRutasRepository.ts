@@ -67,7 +67,7 @@ export default class PostgresRutasRepository implements RutasRepository {
             const sqlQuery = `INSERT INTO replanificacion_rutas
                                 (id_optimizacion_anterior, id_optimizacion_nueva, id_evento, timestamp_replanificacion, razon)
                                 VALUES($1, $2, $3, $4, 'Evento inesperado');`
-            return await t.one(sqlQuery, [idOptimizacionAnterior, idOprimizacionNueva, idEvento, fechaHoraActual])
+            await t.none(sqlQuery, [idOptimizacionAnterior, idOprimizacionNueva, idEvento, fechaHoraActual])
         } catch (error) {
             logger.error('Rutas', 'guardarReplanificaicon', [`Error guardando replanificacion: ${error.message}`])
             throw new PostgresException(
