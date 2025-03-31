@@ -63,6 +63,7 @@ export const IGuardarReplanificacionSchema = CustomJoi.object<IGuardarReplanific
     envios: CustomJoi.array().items(IEnvioSchema).required(),
     idEquipo: CustomJoi.number().required(),
     idOptimizacionAnterior: CustomJoi.number().required(),
+    idEvento: CustomJoi.number().required(),
 })
 
 export default IEquipoIdSchema

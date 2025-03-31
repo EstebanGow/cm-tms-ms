@@ -156,18 +156,14 @@ describe('GestionRutasController', () => {
                 data: { idEquipo: null }
             } as Req
             
-            // Crear error
             const testError = Error()
             
-            // Configurar mock para lanzar error
             ;(validateData as jest.Mock).mockImplementation(() => {
                 throw testError
             })
             
-            // Esperar que la función propague el error
             await expect(gestionRutasController.replanificarRutas(req)).rejects.toThrow()
             
-            // Verificar que se llamó a validateData pero no al caso de uso
             expect(validateData).toHaveBeenCalled()
             expect(replanificarRutasUseCaseMock.execute).not.toHaveBeenCalled()
         })
@@ -237,18 +233,14 @@ describe('GestionRutasController', () => {
                 data: { envios: null, idEquipo: null }
             } as Req
             
-            // Crear error
             const testError = Error()
             
-            // Configurar mock para lanzar error
             ;(validateDataPubSub as jest.Mock).mockImplementation(() => {
                 throw testError
             })
             
-            // Esperar que la función propague el error
             await expect(gestionRutasController.guardarPlanificacionRutas(req)).rejects.toThrow()
             
-            // Verificar que se llamó a validateDataPubSub pero no al caso de uso
             expect(validateDataPubSub).toHaveBeenCalled()
             expect(guardarPlanificacionUseCaseMock.execute).not.toHaveBeenCalled()
         })
@@ -324,18 +316,14 @@ describe('GestionRutasController', () => {
                 data: { envios: null, idEquipo: null, idOptimizacionAnterior: null }
             } as Req
             
-            // Crear error
             const testError = Error()
             
-            // Configurar mock para lanzar error
             ;(validateDataPubSub as jest.Mock).mockImplementation(() => {
                 throw testError
             })
             
-            // Esperar que la función propague el error
             await expect(gestionRutasController.guardarReplanificacionRutas(req)).rejects.toThrow()
             
-            // Verificar que se llamó a validateDataPubSub pero no al caso de uso
             expect(validateDataPubSub).toHaveBeenCalled()
             expect(guardarReplanificacionUseCaseMock.execute).not.toHaveBeenCalled()
         })

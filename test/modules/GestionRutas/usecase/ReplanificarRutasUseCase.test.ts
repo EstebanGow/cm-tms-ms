@@ -402,5 +402,70 @@ describe('ReplanificarRutasUseCase', () => {
                 done()
             })
     })
+
+    it('debe incluir correctamente el id_evento en la llamada al publisher', async () => {
+        const mockEventosInesperadosConId = {
+            id_evento: 567,
+            tipo: 'Accidente de tránsito',
+            latitud: 6.25,
+            longitud: -75.56,
+            radio_afectacion_km: 0.7,
+            descripcion: 'Accidente con múltiples vehículos'
+        };
+        
+        condicionesDomainServiceMock.consultarEventosInesperados.mockResolvedValue(mockEventosInesperadosConId);
+        
+        await replanificarRutasUseCase.execute(1);
+        
+        expect(publisher).toHaveBeenCalledWith(
+            expect.objectContaining({
+                envios: mockEnvios,
+                idEquipo: 1,
+                idOptimizacionAnterior: mockEquipo.ruta_activa,
+                idEvento: 567
+            }),
+            'esteban-replanificacion-ruta'
+        );
+    });
+    
+    it('debe manejar correctamente cuando eventosInesperados es null', async () => {
+        condicionesDomainServiceMock.consultarEventosInesperados.mockResolvedValue(null);
+        
+        await replanificarRutasUseCase.execute(1);
+        
+        expect(publisher).toHaveBeenCalledWith(
+            expect.objectContaining({
+                envios: mockEnvios,
+                idEquipo: 1,
+                idOptimizacionAnterior: mockEquipo.ruta_activa,
+                idEvento: undefined
+            }),
+            'esteban-replanificacion-ruta'
+        );
+    });
+    
+    it('debe manejar correctamente cuando eventosInesperados no tiene id_evento', async () => {
+        const mockEventosSinId = {
+            tipo: 'Lluvia intensa',
+            latitud: 6.25,
+            longitud: -75.56,
+            radio_afectacion_km: 1.2,
+            descripcion: 'Lluvia intensa en la zona norte'
+        };
+        
+        condicionesDomainServiceMock.consultarEventosInesperados.mockResolvedValue(mockEventosSinId);
+        
+        await replanificarRutasUseCase.execute(1);
+        
+        expect(publisher).toHaveBeenCalledWith(
+            expect.objectContaining({
+                envios: mockEnvios,
+                idEquipo: 1,
+                idOptimizacionAnterior: mockEquipo.ruta_activa,
+                idEvento: undefined
+            }),
+            'esteban-replanificacion-ruta'
+        );
+    });
     
 })
