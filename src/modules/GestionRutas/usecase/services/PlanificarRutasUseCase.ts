@@ -1,5 +1,4 @@
 import { DEPENDENCY_CONTAINER } from '@common/dependencies/DependencyContainer'
-import { RutasRepository } from '@modules/GestionRutas/domain/repositories/RutasRepository'
 import EquiposDomainService from '@modules/GestionRutas/domain/services/Equipos/EquiposDomainService'
 import TYPESDEPENDENCIESGLOBAL from '@common/dependencies/TypesDependencies'
 import EnviosDomainService from '@modules/GestionRutas/domain/services/Envios/EnviosDomainService'
@@ -12,10 +11,9 @@ import OrdenadorRutas from '@modules/GestionRutas/domain/strategies/OrdenadorRut
 import EquipoEntity from '@modules/GestionRutas/domain/entities/EquipoEntity'
 import { ICondiciones } from '@modules/GestionRutas/domain/models/ICondiciones'
 import { publisher } from '@infrastructure/app/events/pubsub/PubSubBatch'
+import TOPICS from '@infrastructure/app/events/pubsub/Topics'
 
 export default class PlanificarRutasUseCase {
-    private rutasRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIESGLOBAL.RutasRepository)
-
     private equiposDomainService = DEPENDENCY_CONTAINER.get<EquiposDomainService>(
         TYPESDEPENDENCIESGLOBAL.EquiposDomainService,
     )
@@ -38,7 +36,7 @@ export default class PlanificarRutasUseCase {
         const condiciones = await this.obtenerCondicionesActuales(equipo.ubicacion.ciudad)
         const enviosOrdenados = this.ordenarEnvios(enviosPorCapacidad, condiciones)
 
-        this.registrarResultados(enviosOrdenados, idEquipo)
+        this.publicarEventoPlanificacionRuta(enviosOrdenados, idEquipo)
 
         return enviosOrdenados
     }
@@ -81,17 +79,17 @@ export default class PlanificarRutasUseCase {
         return { clima, trafico, eventosInesperados }
     }
 
-    private ordenarEnvios(enviosPorCapacidad: EnvioEntity[], condiciones: ICondiciones) {
+    private ordenarEnvios(envios: EnvioEntity[], condiciones: ICondiciones) {
         const { clima, trafico, eventosInesperados } = condiciones
 
         const estrategiaOptima = this.estrategiaFactory.crearEstrategiaOptima(clima, trafico, eventosInesperados)
 
         this.ordenadorRutas.setStrategy(estrategiaOptima)
 
-        return this.ordenadorRutas.ordenarEnvios(enviosPorCapacidad, clima, trafico, eventosInesperados)
+        return this.ordenadorRutas.ordenarEnvios(envios, clima, trafico, eventosInesperados)
     }
 
-    private async registrarResultados(enviosOrdenados: EnvioEntity[], idEquipo: number) {
-        await publisher({ envios: enviosOrdenados, idEquipo }, 'esteban-planificacion-ruta')
+    private async publicarEventoPlanificacionRuta(enviosOrdenados: EnvioEntity[], idEquipo: number) {
+        await publisher({ envios: enviosOrdenados, idEquipo }, TOPICS.PLANIFICACION_RUTA)
     }
 }

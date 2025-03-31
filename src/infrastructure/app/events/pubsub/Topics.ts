@@ -1,5 +1,6 @@
 const TOPICS = {
-    EXAMPLE_TOPIC: 'example-topic',
+    PLANIFICACION_RUTA: 'esteban-planificacion-ruta',
+    REPLANIFICACION_RUTA: 'esteban-replanificacion-ruta',
 }
 
 export default TOPICS

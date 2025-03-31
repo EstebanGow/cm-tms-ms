@@ -56,7 +56,7 @@ export default class GestionRutasController {
 
     async guardarReplanificacionRutas(req: Req): Promise<Response<Status | null>> {
         const data = validateDataPubSub<IGuardarReplanificacion>(IGuardarReplanificacionSchema, req.data)
-        await this.guardarReplanificacionUseCase.execute(data.envios, data.idEquipo, data.idOptimizacionAnterior)
+        await this.guardarReplanificacionUseCase.execute(data)
         return Result.ok<Status>({ ok: 'Se replanificaron correctamente las rutas' })
     }
 }

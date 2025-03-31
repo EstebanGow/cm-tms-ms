@@ -7,4 +7,5 @@ export interface IGuardarPlanificacion {
 
 export interface IGuardarReplanificacion extends IGuardarPlanificacion {
     idOptimizacionAnterior: number
+    idEvento: number
 }

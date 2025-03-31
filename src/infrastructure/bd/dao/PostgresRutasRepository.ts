@@ -36,6 +36,7 @@ export default class PostgresRutasRepository implements RutasRepository {
         data: EnvioEntity[],
         idEquipo: number,
         idOptimizacionAnterior: number,
+        idEvento: number,
     ): Promise<void> {
         try {
             return await this.db.tx(async (t) => {
@@ -43,12 +44,35 @@ export default class PostgresRutasRepository implements RutasRepository {
                 const idOptimizacion = await this.guardarOptimizacion(idEquipo, t)
                 await this.guardarDetallesOptimizacion(data, idOptimizacion, t)
                 await this.guardarEnviosAsignados(data, idOptimizacion, idEquipo, t)
+                await this.guardarReplanificaicon(idOptimizacionAnterior, idOptimizacion, idEvento, t)
             })
         } catch (error) {
             logger.error('Rutas', 'guardarRutas', [`Error guardando replanificacion rutas: ${error.message}`])
             throw new PostgresException(
                 500,
                 `Error al guardar datos replanificacion rutas en postgress: ${error.message}`,
+            )
+        }
+    }
+
+    private async guardarReplanificaicon(
+        idOptimizacionAnterior: number,
+        idOprimizacionNueva: number,
+        idEvento: number,
+        t: ITask<IMain>,
+    ): Promise<void> {
+        try {
+            const fechaHoraActual = moment().tz('America/Bogota').format('Y-MM-DD HH:mm:ss')
+
+            const sqlQuery = `INSERT INTO replanificacion_rutas
+                                (id_optimizacion_anterior, id_optimizacion_nueva, id_evento, timestamp_replanificacion, razon)
+                                VALUES($1, $2, $3, $4, 'Evento inesperado');`
+            return await t.one(sqlQuery, [idOptimizacionAnterior, idOprimizacionNueva, idEvento, fechaHoraActual])
+        } catch (error) {
+            logger.error('Rutas', 'guardarReplanificaicon', [`Error guardando replanificacion: ${error.message}`])
+            throw new PostgresException(
+                500,
+                `Error al guardar data de la replanificacion en postgress: ${error.message}`,
             )
         }
     }

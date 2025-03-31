@@ -259,18 +259,19 @@ describe('GestionRutasController', () => {
             const envios = [{ id: 1 }, { id: 2 }]
             const idEquipo = 123
             const idOptimizacionAnterior = 456
+            const idEvento = 1
             const req: Req = {
                 data: { envios, idEquipo, idOptimizacionAnterior }
             } as Req
             
-            ;(validateDataPubSub as jest.Mock).mockReturnValue({ envios, idEquipo, idOptimizacionAnterior })
+            ;(validateDataPubSub as jest.Mock).mockReturnValue({ envios, idEquipo, idOptimizacionAnterior, idEvento })
             
             const expectedResult = Result.ok({ ok: 'Se replanificaron correctamente las rutas' })
             
             const result = await gestionRutasController.guardarReplanificacionRutas(req)
             
             expect(validateDataPubSub).toHaveBeenCalled()
-            expect(guardarReplanificacionUseCaseMock.execute).toHaveBeenCalledWith(envios, idEquipo, idOptimizacionAnterior)
+            expect(guardarReplanificacionUseCaseMock.execute).toHaveBeenCalledWith({envios, idEquipo, idOptimizacionAnterior, idEvento})
             expect(result).toEqual(expectedResult)
         })
         
@@ -278,31 +279,33 @@ describe('GestionRutasController', () => {
             const envios = [{ id: 1 }, { id: 2 }]
             const idEquipo = 123
             const idOptimizacionAnterior = 456
+            const idEvento = 1
             const req: Req = {
                 data: { envios, idEquipo, idOptimizacionAnterior }
             } as Req
             
-            ;(validateDataPubSub as jest.Mock).mockReturnValue({ envios, idEquipo, idOptimizacionAnterior })
+            ;(validateDataPubSub as jest.Mock).mockReturnValue({ envios, idEquipo, idOptimizacionAnterior, idEvento })
             
             const mockError = Error('Error en guardado de replanificación')
             guardarReplanificacionUseCaseMock.execute.mockRejectedValue(mockError)
             
             await expect(gestionRutasController.guardarReplanificacionRutas(req)).rejects.toThrow(mockError)
             expect(validateDataPubSub).toHaveBeenCalled()
-            expect(guardarReplanificacionUseCaseMock.execute).toHaveBeenCalledWith(envios, idEquipo, idOptimizacionAnterior)
+            expect(guardarReplanificacionUseCaseMock.execute).toHaveBeenCalledWith({envios, idEquipo, idOptimizacionAnterior, idEvento})
         })
         
         it('debe validar los datos de entrada correctamente para guardar replanificación', async () => {
             const envios = [{ id: 1 }, { id: 2 }]
             const idEquipo = 123
             const idOptimizacionAnterior = 456
+            const idEvento = 1
             const req: Req = {
                 data: { envios, idEquipo, idOptimizacionAnterior }
             } as Req
             
             ;(validateDataPubSub as jest.Mock).mockImplementation((schema, data) => {
                 if (data.idEquipo === 123) {
-                    return { envios, idEquipo, idOptimizacionAnterior }
+                    return { envios, idEquipo, idOptimizacionAnterior, idEvento }
                 }
                 throw Error('Datos inválidos')
             })
@@ -312,7 +315,7 @@ describe('GestionRutasController', () => {
             const result = await gestionRutasController.guardarReplanificacionRutas(req)
             
             expect(validateDataPubSub).toHaveBeenCalled()
-            expect(guardarReplanificacionUseCaseMock.execute).toHaveBeenCalledWith(envios, idEquipo, idOptimizacionAnterior)
+            expect(guardarReplanificacionUseCaseMock.execute).toHaveBeenCalledWith({envios, idEquipo, idOptimizacionAnterior, idEvento})
             expect(result).toEqual(expectedResult)
         })
         

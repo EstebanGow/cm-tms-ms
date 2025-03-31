@@ -12,6 +12,7 @@ import EquipoEntity from '@modules/GestionRutas/domain/entities/EquipoEntity'
 import { ICondiciones } from '@modules/GestionRutas/domain/models/ICondiciones'
 import { publisher } from '@infrastructure/app/events/pubsub/PubSubBatch'
 import OptimizacionRutaEntity from '@modules/Equipos/domain/entities/OptimizacionRutaEntity'
+import TOPICS from '@infrastructure/app/events/pubsub/Topics'
 
 export default class ReplanificarRutasUseCase {
     private rutasRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIESGLOBAL.RutasRepository)
@@ -39,7 +40,7 @@ export default class ReplanificarRutasUseCase {
         const enviosEquipo = await this.consultarEnviosOptimizacion(equipo)
         const condiciones = await this.obtenerCondicionesActuales(equipo.ubicacion.ciudad)
         const enviosOrdenados = this.ordenarEnvios(enviosEquipo, condiciones)
-        this.registrarResultados(enviosOrdenados, idEquipo, equipo.ruta_activa)
+        this.publicarEventoReplanificacionnRuta(enviosOrdenados, idEquipo, equipo.ruta_activa, condiciones)
 
         return enviosOrdenados
     }
@@ -96,11 +97,20 @@ export default class ReplanificarRutasUseCase {
         return this.ordenadorRutas.ordenarEnvios(enviosPorCapacidad, clima, trafico, eventosInesperados)
     }
 
-    private async registrarResultados(
+    private async publicarEventoReplanificacionnRuta(
         enviosOrdenados: EnvioEntity[],
         idEquipo: number,
         idOptimizacionAnterior: number,
+        condiciones: ICondiciones,
     ) {
-        await publisher({ envios: enviosOrdenados, idEquipo, idOptimizacionAnterior }, 'esteban-replanificacion-ruta')
+        await publisher(
+            {
+                envios: enviosOrdenados,
+                idEquipo,
+                idOptimizacionAnterior,
+                idEvento: condiciones.eventosInesperados?.id_evento,
+            },
+            TOPICS.REPLANIFICACION_RUTA,
+        )
     }
 }

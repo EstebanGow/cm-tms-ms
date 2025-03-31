@@ -27,7 +27,8 @@ describe('ConsultarRutasEquipoUseCase', () => {
         } as unknown as jest.Mocked<RutasRepository>
         
         redisRepositoryMock = {
-            consultar: jest.fn()
+            consultar: jest.fn(),
+            guardar: jest.fn() // Añadimos el mock del método guardar
         } as unknown as jest.Mocked<RedisRepository>
         
         (DEPENDENCY_CONTAINER.get as jest.Mock).mockImplementation((type) => {
@@ -96,14 +97,15 @@ describe('ConsultarRutasEquipoUseCase', () => {
         
         expect(redisRepositoryMock.consultar).toHaveBeenCalledWith(`ruta-${idEquipo}`)
         expect(rutasRepositoryMock.obtenerRutasEquipo).not.toHaveBeenCalled()
+        expect(redisRepositoryMock.guardar).not.toHaveBeenCalled() // No debe guardar en caché si ya existe
         expect(resultado).toBe(mockOptimizacionRuta)
     })
     
-    it('debe obtener las rutas de un equipo desde el repositorio cuando no hay caché', async () => {
+    it('debe obtener las rutas de un equipo desde el repositorio cuando no hay caché y guardarlas en caché', async () => {
         const idEquipo = 123
         const mockOptimizacionRuta = new OptimizacionRutaEntity({
             "id_optimizacion": 1,
-            "id_equipo": 1,
+            "id_equipo": idEquipo, // Cambiado para que coincida con el idEquipo de la prueba
             "fecha_optimizacion": "2025-03-26T05:00:00.000Z",
             "estado": "Vigente",
             "detalles_optimizacion": [
@@ -131,7 +133,7 @@ describe('ConsultarRutasEquipoUseCase', () => {
             ],
             "info_equipo": {
                 "estado": "Activo",
-                "id_equipo": 1,
+                "id_equipo": idEquipo,
                 "id_vehiculo": 1,
                 "id_conductor": 2,
                 "fecha_asignacion": "2025-03-26"
@@ -141,11 +143,13 @@ describe('ConsultarRutasEquipoUseCase', () => {
         
         redisRepositoryMock.consultar.mockResolvedValue(null)
         rutasRepositoryMock.obtenerRutasEquipo.mockResolvedValue(mockOptimizacionRuta)
+        redisRepositoryMock.guardar.mockResolvedValue(true)
         
         const resultado = await consultarRutasEquipoUseCase.execute(mockInput)
         
         expect(redisRepositoryMock.consultar).toHaveBeenCalledWith(`ruta-${idEquipo}`)
         expect(rutasRepositoryMock.obtenerRutasEquipo).toHaveBeenCalledWith(idEquipo)
+        expect(redisRepositoryMock.guardar).toHaveBeenCalledWith(mockOptimizacionRuta, `ruta-${idEquipo}`)
         expect(resultado).toBe(mockOptimizacionRuta)
     })
     
@@ -161,9 +165,10 @@ describe('ConsultarRutasEquipoUseCase', () => {
         
         expect(redisRepositoryMock.consultar).toHaveBeenCalledWith(`ruta-${idEquipo}`)
         expect(rutasRepositoryMock.obtenerRutasEquipo).toHaveBeenCalledWith(idEquipo)
+        expect(redisRepositoryMock.guardar).not.toHaveBeenCalled() // No debe guardar nada en caché
     })
     
-    it('debe lanzar excepción cuando el redis repository lanza error', async () => {
+    it('debe lanzar excepción cuando el redis repository lanza error al consultar', async () => {
         const idEquipo = 123
         const mockInput: IEquipoIn = { idEquipo }
         const mockError = new Error('Error de redis')
@@ -173,6 +178,7 @@ describe('ConsultarRutasEquipoUseCase', () => {
         await expect(consultarRutasEquipoUseCase.execute(mockInput)).rejects.toThrow(mockError)
         expect(redisRepositoryMock.consultar).toHaveBeenCalledWith(`ruta-${idEquipo}`)
         expect(rutasRepositoryMock.obtenerRutasEquipo).not.toHaveBeenCalled()
+        expect(redisRepositoryMock.guardar).not.toHaveBeenCalled()
     })
     
     it('debe lanzar excepción cuando el rutas repository lanza error', async () => {
@@ -186,5 +192,36 @@ describe('ConsultarRutasEquipoUseCase', () => {
         await expect(consultarRutasEquipoUseCase.execute(mockInput)).rejects.toThrow(mockError)
         expect(redisRepositoryMock.consultar).toHaveBeenCalledWith(`ruta-${idEquipo}`)
         expect(rutasRepositoryMock.obtenerRutasEquipo).toHaveBeenCalledWith(idEquipo)
+        expect(redisRepositoryMock.guardar).not.toHaveBeenCalled()
     })
-})
+    
+    // Prueba específica para el método guardarRutaEquipoCache
+    it('debe utilizar el id_equipo correcto al guardar en caché', async () => {
+        const idEquipo = 123
+        const mockOptimizacionRuta = new OptimizacionRutaEntity({
+            "id_optimizacion": 1,
+            "id_equipo": idEquipo,
+            "fecha_optimizacion": "2025-03-26T05:00:00.000Z",
+            "estado": "Vigente",
+            "detalles_optimizacion": [],
+            "info_equipo": {
+                "estado": "Activo",
+                "id_equipo": idEquipo,
+                "id_vehiculo": 1,
+                "id_conductor": 2,
+                "fecha_asignacion": "2025-03-26"
+            }
+        })
+        
+        const guardarRutaEquipoCache = jest.spyOn(consultarRutasEquipoUseCase as any, 'guardarRutaEquipoCache')
+        
+        redisRepositoryMock.consultar.mockResolvedValue(null)
+        rutasRepositoryMock.obtenerRutasEquipo.mockResolvedValue(mockOptimizacionRuta)
+        redisRepositoryMock.guardar.mockResolvedValue(true)
+        
+        await consultarRutasEquipoUseCase.execute({ idEquipo })
+        
+        expect(guardarRutaEquipoCache).toHaveBeenCalledWith(mockOptimizacionRuta)
+        expect(redisRepositoryMock.guardar).toHaveBeenCalledWith(mockOptimizacionRuta, `ruta-${idEquipo}`)
+    })
+});
