@@ -58,7 +58,7 @@ export default class PostgresEventosRepository implements EventosRepository {
         try {
             const sqlQuery = `SELECT id_evento, id_tipo_evento, descripcion, latitud, longitud, radio_afectacion_km, fecha_inicio, fecha_fin, estado, ciudad
                                 FROM eventos_inesperados
-                                WHERE ciudad = $1 AND estado = 'Activo'`
+                                WHERE ciudad = $1 AND estado = 'Activo' LIMIT 1`
             const resultadoConsulta = await this.db.oneOrNone(sqlQuery, [ciudad])
             if (resultadoConsulta) {
                 return resultadoConsulta
