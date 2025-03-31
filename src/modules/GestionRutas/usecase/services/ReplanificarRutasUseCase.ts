@@ -11,6 +11,7 @@ import EnvioEntity from '@modules/GestionRutas/domain/entities/EnvioEntity'
 import EquipoEntity from '@modules/GestionRutas/domain/entities/EquipoEntity'
 import { ICondiciones } from '@modules/GestionRutas/domain/models/ICondiciones'
 import { publisher } from '@infrastructure/app/events/pubsub/PubSubBatch'
+import OptimizacionRutaEntity from '@modules/Equipos/domain/entities/OptimizacionRutaEntity'
 
 export default class ReplanificarRutasUseCase {
     private rutasRepository = DEPENDENCY_CONTAINER.get<RutasRepository>(TYPESDEPENDENCIESGLOBAL.RutasRepository)
@@ -33,6 +34,8 @@ export default class ReplanificarRutasUseCase {
 
     async execute(idEquipo: number): Promise<EnvioEntity[]> {
         const equipo = await this.obtenerYValidarEquipo(idEquipo)
+        const rutaActiva = await this.obtenerRutaActivaEquipo(idEquipo, equipo.ubicacion.ciudad)
+        this.validarRutaActivaEquipo(rutaActiva)
         const enviosEquipo = await this.consultarEnviosOptimizacion(equipo)
         const condiciones = await this.obtenerCondicionesActuales(equipo.ubicacion.ciudad)
         const enviosOrdenados = this.ordenarEnvios(enviosEquipo, condiciones)
@@ -67,6 +70,20 @@ export default class ReplanificarRutasUseCase {
         const eventosInesperados = await this.condicionesDomainService.consultarEventosInesperados(ciudad)
 
         return { clima: null, trafico: null, eventosInesperados }
+    }
+
+    private async obtenerRutaActivaEquipo(idEquipo: number, ciudad: string) {
+        const rutaActiva = await this.rutasRepository.consultarRutaActivaEquipo(idEquipo, ciudad)
+        return rutaActiva
+    }
+
+    private validarRutaActivaEquipo(rutaActiva: OptimizacionRutaEntity | null) {
+        if (!rutaActiva) {
+            throw new BadMessageException('Error al replanificar la ruta', 'No hay ruta activa para el equipo')
+        }
+        if (!rutaActiva.nuevo_evento) {
+            throw new BadMessageException('Error al replanificar la ruta', 'No hay eventos nuevos')
+        }
     }
 
     private ordenarEnvios(enviosPorCapacidad: EnvioEntity[], condiciones: ICondiciones) {

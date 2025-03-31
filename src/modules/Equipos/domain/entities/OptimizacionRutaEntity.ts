@@ -1,7 +1,6 @@
-import { IOptimizacionRuta } from '../models/IOptimizacionRuta'
 import { IDetalleOptimizacion } from '../models/IDetalleOptimizacion'
 import { IDireccion } from '../models/IDireccion'
-import { IEquipo } from '../models/IEquipo'
+import { IOptimizacionRuta } from '../models/IOptimizacionRuta'
 
 interface IDetalleOptimizacionConDireccion extends IDetalleOptimizacion {
     direccion: IDireccion
@@ -18,7 +17,7 @@ export default class OptimizacionRutaEntity {
 
     detalles_optimizacion: IDetalleOptimizacionConDireccion[]
 
-    info_equipo: IEquipo
+    nuevo_evento: boolean
 
     constructor(data: IOptimizacionRuta) {
         this.id_optimizacion = data.id_optimizacion
@@ -26,6 +25,6 @@ export default class OptimizacionRutaEntity {
         this.fecha_optimizacion = data.fecha_optimizacion
         this.estado = data.estado
         this.detalles_optimizacion = data.detalles_optimizacion
-        this.info_equipo = data.info_equipo
+        this.nuevo_evento = data.nuevo_evento
     }
 }

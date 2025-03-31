@@ -31,7 +31,7 @@ export const publisher = async (publishData: object, topic: string) => {
 
     try {
         const messageId = await pubSubClient.topic(topic).publishMessage({ data: datosBuffer })
-        logger.info('RUTAS', 'publisher', [`Mensaje publicado: ${messageId}`, 'Hola', 'Mundo'])
+        logger.info('RUTAS', 'publisher', [`Mensaje publicado: ${messageId}`, JSON.stringify({ ...publishData })])
     } catch (error) {
         throw new PubSubException(error.message, `Error al publicar en el topic: ${topic}`)
     }

@@ -1,5 +1,4 @@
 import { IDetalleOptimizacionConDireccion } from './IDetalleOptimizacion'
-import { IEquipo } from './IEquipo'
 
 export interface IOptimizacionRuta {
     id_optimizacion: number
@@ -7,5 +6,5 @@ export interface IOptimizacionRuta {
     fecha_optimizacion: string
     estado: string
     detalles_optimizacion: IDetalleOptimizacionConDireccion[]
-    info_equipo: IEquipo
+    nuevo_evento: boolean
 }

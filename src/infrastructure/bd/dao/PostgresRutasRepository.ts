@@ -171,7 +171,7 @@ export default class PostgresRutasRepository implements RutasRepository {
         }
     }
 
-    async consultarRutaActivaEquipo(idEquipo: number): Promise<object | null> {
+    async consultarRutaActivaEquipo(idEquipo: number, ciudad: string): Promise<OptimizacionRutaEntity | null> {
         try {
             const sqlQuery = `SELECT 
                                 opt.id_optimizacion, 
@@ -186,13 +186,14 @@ export default class PostgresRutasRepository implements RutasRepository {
                                     SELECT 1
                                     FROM eventos_inesperados ei
                                     WHERE ei.fecha_inicio > opt.timestamp_optimizacion and ei.estado = $3
+                                    and ei.ciudad = $4
                                 ) AS nuevo_evento
                             FROM 
                                 optimizacion_rutas opt
                             WHERE 
                                 opt.id_equipo = $1 
                                 AND opt.estado = $2`
-            return await this.db.oneOrNone(sqlQuery, [idEquipo, EstadosComunes.VIGENTE, EstadosComunes.ACTIVO])
+            return await this.db.oneOrNone(sqlQuery, [idEquipo, EstadosComunes.VIGENTE, EstadosComunes.ACTIVO, ciudad])
         } catch (error) {
             logger.error('Rutas', 'consultarRutaActivaEquipo', [`Error consultando ruta activa: ${error.message}`])
             throw new PostgresException(500, `Error al consultar ruta activa en postgres: ${error.message}`)
