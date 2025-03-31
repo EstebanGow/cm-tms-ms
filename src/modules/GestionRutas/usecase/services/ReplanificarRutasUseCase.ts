@@ -33,6 +33,16 @@ export default class ReplanificarRutasUseCase {
 
     private ordenadorRutas = DEPENDENCY_CONTAINER.get<OrdenadorRutas>(TYPESDEPENDENCIESGLOBAL.OrdenadorRutas)
 
+    private readonly CAUSA_ERROR = 'Error al replanificar ruta'
+
+    private readonly EQUIPO_NO_EXISTE = 'El equipo solicitado no existe'
+
+    private readonly SIN_RUTA_ACTIVA = 'No hay ruta activa para el equipo'
+
+    private readonly SIN_EVENTOS_NUEVOS = 'No hay eventos nuevos'
+
+    private readonly SIN_ENVIOS_DISPONIBLES = 'No hay envíos disponibles'
+
     async execute(idEquipo: number): Promise<EnvioEntity[]> {
         const equipo = await this.obtenerYValidarEquipo(idEquipo)
         const rutaActiva = await this.obtenerRutaActivaEquipo(idEquipo, equipo.ubicacion.ciudad)
@@ -49,7 +59,7 @@ export default class ReplanificarRutasUseCase {
         const equipo = await this.equiposDomainService.consultarEquipo(idEquipo)
 
         if (!equipo) {
-            throw new BadMessageException('Error al consultar equipo', 'El equipo solicitado no existe')
+            throw new BadMessageException(this.CAUSA_ERROR, this.EQUIPO_NO_EXISTE)
         }
 
         this.equiposDomainService.validarEquipoReplanificacion(equipo)
@@ -60,7 +70,7 @@ export default class ReplanificarRutasUseCase {
         const envios = await this.enviosDomainService.consultarEnviosOptimizacion(equipo.ruta_activa)
 
         if (envios && envios.length === 0) {
-            throw new BadMessageException('Error al replanificar la ruta', 'No hay envíos disponibles')
+            throw new BadMessageException(this.CAUSA_ERROR, this.SIN_ENVIOS_DISPONIBLES)
         }
         const enviosOrdenadosPorPrioridad = this.enviosDomainService.ordenarEnviosPorPrioridad(envios)
 
@@ -80,10 +90,10 @@ export default class ReplanificarRutasUseCase {
 
     private validarRutaActivaEquipo(rutaActiva: OptimizacionRutaEntity | null) {
         if (!rutaActiva) {
-            throw new BadMessageException('Error al replanificar la ruta', 'No hay ruta activa para el equipo')
+            throw new BadMessageException(this.CAUSA_ERROR, this.SIN_RUTA_ACTIVA)
         }
         if (!rutaActiva.nuevo_evento) {
-            throw new BadMessageException('Error al replanificar la ruta', 'No hay eventos nuevos')
+            throw new BadMessageException(this.CAUSA_ERROR, this.SIN_EVENTOS_NUEVOS)
         }
     }
 

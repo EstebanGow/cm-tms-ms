@@ -13,6 +13,10 @@ export default class AgregarEventoUseCase {
         TYPESDEPENDENCIES.GeolocalizacionDomainService,
     )
 
+    private readonly CAUSA_ERROR = 'Error al agregar evento'
+
+    private readonly TIPO_EVENTO_NO_EXISTE = 'El tipo de evento no existe'
+
     async execute(data: IRegistrarEventoIn): Promise<void> {
         validarCoordenadas(data.latitud, data.longitud)
         await this.geolocalizacionDomainService.validarCoordenadasGeolocalizacion(
@@ -26,6 +30,6 @@ export default class AgregarEventoUseCase {
 
     private async validartipoEvento(idTIpoEvento: number): Promise<void> {
         const tipoEvento = await this.eventosRepository.consultarTipoEvento(idTIpoEvento)
-        if (!tipoEvento) throw new BadMessageException('Error al consultar evento', 'El tipo de evento no existe')
+        if (!tipoEvento) throw new BadMessageException(this.CAUSA_ERROR, this.TIPO_EVENTO_NO_EXISTE)
     }
 }

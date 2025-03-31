@@ -8,6 +8,14 @@ import { ITokenDecode } from '@common/interfaces/ITokenDecode'
 export class TokenService implements ITokenService {
     private jwtSecret = ENV.JWT_SECRET
 
+    private readonly NO_TOKEN_ERROR = 'No authorization token provided'
+
+    private readonly INVALID_TOKEN_FORMAT_ERROR = 'Invalid token format'
+
+    private readonly TOKEN_EXPIRED_ERROR = 'Token expired'
+
+    private readonly INVALID_TOKEN_ERROR = 'Invalid token'
+
     generarToken(data: object): string {
         return jwt.sign({ ...data }, this.jwtSecret, {
             algorithm: 'HS256',
@@ -18,11 +26,11 @@ export class TokenService implements ITokenService {
     verificarToken(token: string | undefined): ITokenDecode {
         try {
             if (!token) {
-                throw new CustomError('No authorization token provided', 401, true)
+                throw new CustomError(this.NO_TOKEN_ERROR, 401, true)
             }
 
             if (!token.startsWith('Bearer ')) {
-                throw new CustomError('Invalid token format', 400, true)
+                throw new CustomError(this.INVALID_TOKEN_FORMAT_ERROR, 400, true)
             }
 
             const tokenValue = token.split(' ')[1]
@@ -35,10 +43,10 @@ export class TokenService implements ITokenService {
             }
 
             if (error.name === 'TokenExpiredError') {
-                throw new CustomError('Token expired', 401, true)
+                throw new CustomError(this.TOKEN_EXPIRED_ERROR, 401, true)
             }
 
-            throw new CustomError('Invalid token', 401, true)
+            throw new CustomError(this.INVALID_TOKEN_ERROR, 401, true)
         }
     }
 }

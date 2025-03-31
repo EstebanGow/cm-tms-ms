@@ -30,6 +30,12 @@ export default class PlanificarRutasUseCase {
 
     private ordenadorRutas = DEPENDENCY_CONTAINER.get<OrdenadorRutas>(TYPESDEPENDENCIESGLOBAL.OrdenadorRutas)
 
+    private readonly CAUSA_ERROR = 'Error al asignar ruta'
+
+    private readonly ENVIOS_NO_DISPONIBLE = 'No hay envíos disponibles'
+
+    private readonly EQUIPO_NO_EXISTE = 'El equipo solicitado no existe'
+
     async execute(idEquipo: number): Promise<EnvioEntity[]> {
         const equipo = await this.obtenerYValidarEquipo(idEquipo)
         const enviosPorCapacidad = await this.obtenerEnviosDisponibles(equipo)
@@ -45,7 +51,7 @@ export default class PlanificarRutasUseCase {
         const equipo = await this.equiposDomainService.consultarEquipo(idEquipo)
 
         if (!equipo) {
-            throw new BadMessageException('Error al consultar equipo', 'El equipo solicitado no existe')
+            throw new BadMessageException(this.CAUSA_ERROR, this.EQUIPO_NO_EXISTE)
         }
 
         this.equiposDomainService.validarEquipo(equipo)
@@ -63,7 +69,7 @@ export default class PlanificarRutasUseCase {
         )
 
         if (enviosPorCapacidad.length === 0) {
-            throw new BadMessageException('Error al asignar ruta', 'No hay envíos disponibles')
+            throw new BadMessageException(this.CAUSA_ERROR, this.ENVIOS_NO_DISPONIBLE)
         }
 
         return enviosPorCapacidad

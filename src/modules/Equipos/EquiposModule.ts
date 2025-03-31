@@ -4,6 +4,7 @@ import { HTTPMETODO, Ruta } from '@common/modules/Ruta'
 import TYPESDEPENDENCIES from './dependencies/TypesDependencies'
 import createDependencies from './dependencies/Dependencies'
 import EquiposController from './controllers/EquiposController'
+import EquiposSchema from './schemas/EquiposSchema'
 
 export default class EquiposModule implements IModule {
     private moduloRuta = '/equipos'
@@ -19,6 +20,7 @@ export default class EquiposModule implements IModule {
                 metodo: HTTPMETODO.GET,
                 url: '/rutas/:idEquipo',
                 evento: eventosController.consultarRutaEquipo.bind(eventosController),
+                schema: EquiposSchema.consultarRutaEquipo,
             },
         ]
     }
